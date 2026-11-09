@@ -3,336 +3,842 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Circle Battle x3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Circle Battle - Fantasy Arena</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#080808;color:white;font-family:Arial;text-align:center}
-header{padding:14px;background:#181818;border-bottom:1px solid #444}
-h2{margin:3px;color:#ffe17b}
-#arena{display:block;width:min(94vw,650px);height:min(94vw,650px);max-height:65vh;margin:14px auto;background:#000;border:2px solid #444;border-radius:12px}
-.panel{width:min(94vw,650px);margin:auto;background:#191919;padding:12px;border-radius:12px}
-.stats{display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap}
-.hp{height:13px;background:#333;border-radius:20px;overflow:hidden;margin:6px}
-.hp div{height:100%;transition:width .15s}
-button,select{background:#292929;color:white;border:1px solid #777;border-radius:8px;padding:10px;margin:4px}
-#log{height:90px;overflow:auto;text-align:left;font-size:13px;color:#ddd;margin-top:10px}
+body{margin:0;background:#08090d;color:#fff;font-family:Arial,sans-serif}
+button{font:inherit;color:white;cursor:pointer}
+header{text-align:center;padding:17px 8px;background:linear-gradient(120deg,#171526,#111521);border-bottom:1px solid #454158}
+header h1{margin:0;color:#e0c2ff;font-size:26px}
+header p{margin:7px 0 0;color:#aaa;font-size:13px}
+main{max-width:1100px;margin:auto;padding:12px}
+.arena-wrap{border:2px solid #484848;border-radius:17px;padding:5px;background:#151515}
+canvas{display:block;width:100%;aspect-ratio:1;background:#000;border-radius:11px}
+.panel{margin-top:13px;padding:14px;background:linear-gradient(145deg,#1c1d2b,#10121b);border:1px solid #414158;border-radius:18px;box-shadow:0 8px 24px #0009}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fighter{text-align:center;padding:12px 7px;border-radius:14px;background:#172b20;border:1px solid #3d6948}
+.fighter.enemy{background:#301a28;border-color:#704054}
+.fighter h3{margin:7px 0;font-size:17px}
+.fighter .icon{font-size:32px}
+.hp-text{font-size:14px;margin:7px}
+.hpbar{height:10px;border-radius:20px;background:#383840;overflow:hidden}
+.hpfill{height:100%;width:100%;border-radius:20%;transition:width .25s}
+.green{background:linear-gradient(90deg,#42d66c,#a0ff8c);box-shadow:0 0 10px #56ed78}
+.red{background:linear-gradient(90deg,#e83e65,#ff9baf);box-shadow:0 0 10px #ff527a}
+.round{text-align:center;font-size:18px;margin:17px 0;color:#ddd5ff}
+.buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{border:1px solid #66647e;background:#292b40;border-radius:12px;padding:12px 17px}
+button.primary{background:linear-gradient(135deg,#7957d5,#a05bd5);border:0}
+button:active{transform:scale(.97)}
+.section-title{font-size:17px;color:#dfc4ff;margin:0 0 12px}
+.battle-log{height:110px;overflow:auto;background:#0c0e17;border-radius:12px;padding:10px;font-size:13px;color:#c9c9dc}
+.logline{padding:5px 0;border-bottom:1px solid #242638}
+.logline.player{color:#8dffac}
+.logline.enemy{color:#ff9ab1}
+.logline.system{color:#c5b0ff}
+.skin-open{width:100%;margin-top:13px;background:linear-gradient(120deg,#6949b7,#a34b9d)}
+.skin-screen{display:none;margin-top:15px}
+.skin-screen.show{display:block}
+.skin-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.skin-heading h2{font-size:19px;margin:0}
+.skin-heading span{color:#ccc;font-size:14px}
+.skin-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px}
+.categories,.collection,.detail{background:#08090d;border:2px solid #eee;border-radius:15px;padding:10px;min-width:0}
+.categories button{display:block;width:100%;padding:12px 7px;margin-bottom:7px;text-align:left;font-size:13px;border-radius:10px;border:2px solid transparent;background:#101116}
+.categories button.active{border-color:#f276bd;box-shadow:0 0 12px #f276bd88;background:#281b2a}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.skin{background:transparent;border:2px solid transparent;border-radius:13px;padding:8px 2px;text-align:center;min-width:0}
+.skin.selected{border-color:#ff8acb;box-shadow:0 0 14px #ff75c5;background:#211321}
+.skinball{width:clamp(40px,7vw,68px);height:clamp(40px,7vw,68px);border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;color:#15121a;font-weight:900;font-size:17px;box-shadow:0 0 12px currentColor;position:relative}
+.skinball .ornament{position:absolute;top:-12px;right:-7px;font-size:18px;filter:drop-shadow(0 0 3px white)}
+.skin small{font-size:clamp(9px,1.3vw,12px);display:block;overflow-wrap:anywhere;color:#fff;line-height:1.25}
+.detail{margin-top:10px;text-align:center}
+.detail-ball{width:120px;height:120px;border-radius:50%;margin:12px auto;display:grid;place-items:center;font-size:55px;border:3px solid #ffffff88}
+.detail h3{font-size:20px;margin:7px}
+.power-tag{display:inline-block;border:2px solid #f276bd;color:#ff9bd3;padding:7px 12px;border-radius:12px;margin:6px}
+.detail-box{border:1px solid #777;border-radius:12px;padding:10px;margin-top:9px;text-align:left;line-height:1.6;font-size:13px}
+.detail-box strong{display:block;margin-bottom:4px}
+.detail button{width:100%;margin-top:12px;border:2px solid #f276bd;background:#231521;color:#ff9bd3;font-size:17px}
+.pages{display:flex;align-items:center;justify-content:center;gap:22px;margin:13px 0 3px}
+.pages button{border:2px solid white;background:#08090d;font-size:20px;padding:6px 14px}
+.equipped{font-size:12px;color:#9affad}
+.close-skins{width:100%;margin-top:10px}
+@media(min-width:850px){
+ .skin-layout{grid-template-columns:180px minmax(0,1fr) 190px}
+ .detail{margin-top:0}
+}
+@media(max-width:550px){
+ main{padding:8px}
+ .panel{padding:10px}
+ .skin-layout{grid-template-columns:83px minmax(0,1fr)}
+ .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .categories button{font-size:10px;padding:9px 3px}
+ .skin-heading h2{font-size:16px}
+ .skin-heading span{font-size:12px}
+ .detail-ball{width:90px;height:90px;font-size:42px}
+ .fighter h3{font-size:14px}
+ .round{font-size:16px}
+}
 </style>
 </head>
 <body>
 <header>
-<h2>⭕ CIRCLE BATTLE</h2>
-100 ORB SKINS · AUTO BATTLE · SPEED x3
+<h1>✦ CIRCLE BATTLE ✦</h1>
+<p>100 ORB SKINS · AUTO BATTLE · SPEED x3</p>
 </header>
 
-<canvas id="arena" width="650" height="650"></canvas>
-
-<div class="panel">
- <div class="stats">
-  <div>🟢 <b id="name1"></b><br>HP: <span id="hp1">100</span></div>
-  <div>🔴 <b id="name2"></b><br>HP: <span id="hp2">100</span></div>
- </div>
- <div class="hp"><div id="bar1" style="width:100%;background:#4bea61"></div></div>
- <div class="hp"><div id="bar2" style="width:100%;background:#fa6680"></div></div>
- <p>Round <b id="round">1</b> · <b id="status">Đang chiến đấu</b></p>
- <button onclick="restart()">🔄 Chơi lại</button>
- <button onclick="nextRound()">⏭ Round tiếp</button>
- <br>
- <label>Quả cầu 1</label>
- <select id="pick1"></select>
- <label>Quả cầu 2</label>
- <select id="pick2"></select>
- <button onclick="changeOrbs()">Chọn skin</button>
- <div id="log"></div>
+<main>
+<div class="arena-wrap">
+<canvas id="arena" width="700" height="700"></canvas>
 </div>
 
-<script>
-const canvas=document.getElementById("arena");
-const ctx=canvas.getContext("2d");
-const W=650,H=650;
-const SPEED=3;
+<section class="panel">
+<div class="status">
+ <div class="fighter">
+  <div class="icon" id="playerIcon">🟢</div>
+  <h3 id="playerName">Lá Hồi Sinh</h3>
+  <div class="hp-text" id="playerHP">HP: 100 / 100</div>
+  <div class="hpbar"><div class="hpfill green" id="playerBar"></div></div>
+ </div>
+ <div class="fighter enemy">
+  <div class="icon" id="enemyIcon">🔴</div>
+  <h3 id="enemyName">Đối thủ</h3>
+  <div class="hp-text" id="enemyHP">HP: 100 / 100</div>
+  <div class="hpbar"><div class="hpfill red" id="enemyBar"></div></div>
+ </div>
+</div>
 
+<div class="round" id="roundText">ROUND 1 · ĐANG CHIẾN ĐẤU</div>
+<div class="buttons">
+ <button onclick="restart()">↻ Chơi lại</button>
+ <button class="primary" onclick="nextRound()">▶ Round tiếp</button>
+</div>
+
+<button class="skin-open" onclick="toggleSkins()">✦ SKIN & NĂNG LỰC · 100 QUẢ CẦU</button>
+
+<h3 class="section-title" style="margin-top:17px">⚔ Diễn biến trận đấu</h3>
+<div class="battle-log" id="log"></div>
+</section>
+
+<section class="skin-screen" id="skinScreen">
+ <div class="skin-heading">
+  <h2>Skin & Năng lực – 100 Quả Cầu</h2>
+  <span>(100/100)</span>
+ </div>
+ <div class="skin-layout">
+  <div class="categories" id="categories"></div>
+  <div class="collection">
+   <div class="grid" id="skinGrid"></div>
+   <div class="pages">
+    <button onclick="changePage(-1)">❮</button>
+    <span id="pageText">1 / 10</span>
+    <button onclick="changePage(1)">❯</button>
+   </div>
+  </div>
+  <div class="detail">
+   <div class="detail-ball" id="detailBall">🧛</div>
+   <h3 id="detailName">Ma Cà Rồng</h3>
+   <div class="power-tag" id="powerTag">💧 Hút máu</div>
+   <div class="detail-box">
+    <strong>Năng lực:</strong>
+    <span id="detailPower">Hút máu đối thủ khi gây sát thương.</span>
+   </div>
+   <div class="detail-box">
+    <strong>Chỉ số cơ bản:</strong>
+    HP: 100<br>
+    Sát thương: 10<br>
+    Hồi chiêu: 1 giây
+   </div>
+   <button onclick="equipSkin()">Trang bị!</button>
+   <p class="equipped" id="equipMessage">Skin đang chọn</p>
+  </div>
+ </div>
+ <button class="close-skins" onclick="toggleSkins()">Đóng bộ sưu tập</button>
+</section>
+</main>
+
+<script>
 const names=[
-"Ma Cà Rồng","Nhện Độc","Cầu Sét","Băng Giá","Hỏa Diệm",
-"Thiên Thần","Bóng Tối","Đá Núi","Cuồng Phong","Lá Hồi Sinh",
-"Độc Vương","Dung Nham","Thủy Quái","Ảo Ảnh","Vệ Binh",
-"Phượng Hoàng","Hắc Long","Bạch Hổ","Sói Băng","Ong Máy",
-"Thần Sấm","Hoa Ăn Thịt","Kỵ Sĩ","Mặt Trăng","Mặt Trời",
-"Robot","Nam Châm","Pha Lê","Cát Lún","Bão Tuyết",
-"Khói Đen","Linh Hồn","Bom Nổ","Khiên Vàng","Kiếm Bay",
-"Rồng Đỏ","Rồng Xanh","Rùa Đá","Cá Mập","Bạch Tuộc",
-"Phù Thủy","Pháp Sư Lửa","Thợ Săn","Thần Rừng","Nấm Độc",
-"Quỷ Nhỏ","Thiên Sứ","Bóng Ma","Tinh Thể","Sao Băng",
-"Vua Băng","Vua Lửa","Vua Sét","Vua Độc","Vua Gió",
-"Thần Kim Loại","Thần Mộc","Thần Thủy","Thần Thổ","Thần Hỏa",
-"Siêu Tân Tinh","Hố Đen","Ngân Hà","Không Gian","Thời Gian",
-"Phân Thân","Hấp Thụ","Phản Đòn","Cuồng Nộ","Bất Tử",
-"Thợ Săn Bóng Đêm","Bọ Cạp","Bọ Ngựa","Dơi Đêm","Bọ Rùa",
-"Thiết Giáp","Thủy Tinh","San Hô","Sứa Điện","Cáo Lửa",
-"Chim Băng","Hổ Sấm","Gấu Đá","Rắn Độc","Kỳ Lân",
-"Quái Vật Kẹo","Bánh Răng","Đồng Hồ","Mắt Thần","Tinh Linh",
-"Vũ Trụ","Hỗn Mang","Thiên Hà","Hủy Diệt","Sáng Thế",
-"Hoàng Kim","Huyết Nguyệt","Thần Hộ Mệnh","Vua Các Orb"
+"Ma Cà Rồng","Nhện","Sét","Băng","Lửa","Thiên Nhiên","Bóng Tối","Nước","Thời Gian","Đá",
+"Thiên Thần","Ác Quỷ","Độc","Gió","Không Gian","Sói","Mèo","Cơ Giới","Ánh Sáng","Phóng Xạ",
+"Rồng Đỏ","Rồng Băng","Phượng Hoàng","Tinh Linh","Linh Hồn","Samurai","Ninja","Kiếm Sĩ","Pháp Sư","Cung Thủ",
+"Đại Dương","San Hô","Sóng Thần","Bão Tố","Sấm Chớp","Dung Nham","Tro Tàn","Pha Lê","Kim Cương","Vàng",
+"Bạc","Đồng","Sắt","Thép","Hắc Ám","Ánh Trăng","Mặt Trời","Ngân Hà","Tinh Tú","Thiên Thạch",
+"Robot","AI","Điện Tử","Laser","Lượng Tử","Virus","Vi Khuẩn","Nấm Độc","Hoa Hồng","Hoa Sen",
+"Cỏ Bốn Lá","Cây Cổ Thụ","Bướm","Ong","Bọ Cạp","Rắn","Cá Mập","Rùa","Cáo","Gấu",
+"Thỏ","Hổ","Sư Tử","Đại Bàng","Cú Đêm","Bạch Tuộc","Sứa","Cá Heo","Kỳ Lân","Rồng Vàng",
+"Thần Sấm","Thần Băng","Thần Lửa","Thần Gió","Thần Đất","Hư Vô","Hỗn Mang","Ảo Ảnh","Phản Chiếu","May Mắn",
+"Thịnh Nộ","Bất Tử","Hấp Thụ","Phản Đòn","Cuồng Phong","Thiên Hà","Vũ Trụ","Siêu Tân Tinh","Hắc Nhật","Tối Thượng"
 ];
 
 const colors=[
-"#62e85b","#b56aff","#ffe34d","#74dfff","#ff713b",
-"#fff3b0","#8c65bd","#aaa69b","#8cecff","#7bdb82",
-"#a5e34c","#ff4c26","#38bce8","#d58cff","#e7c77a",
-"#ffbb55","#a13b3b","#eeeeee","#8edfff","#ffdd66"
+"#f36c91","#d9dce8","#ffe13c","#43c8ff","#ff8b30",
+"#55e66d","#9b54e8","#4fc7ee","#f1d4a3","#999da8",
+"#ffffff","#8c50c9","#ec4770","#4fe8ca","#ec78d9",
+"#8186a9","#f2eaf4","#38d9d0","#ffe49a","#7bdf61"
+];
+
+const icons=[
+"🧛","🕷️","⚡","❄️","🔥","🌱","🌑","💧","⌛","🪨",
+"👼","😈","☠️","🌪️","🪐","🐺","🐱","⚙️","✨","☢️",
+"🐉","🧊","🦅","🧚","👻","⚔️","🥷","🗡️","🔮","🏹",
+"🌊","🪸","🌊","🌩️","⚡","🌋","🌫️","💎","💠","🪙"
+];
+
+const ornaments=[
+"🧛","🕸️","⚡","💎","🔥","🌿","😈","💧","⌛","🪨",
+"😇","👿","☠️","🌪️","🪐","🐺","🐱","⚙️","✨","☢️",
+"🐉","❄️","🔥","✨","👻","⚔️","🥷","🗡️","🔮","🏹"
 ];
 
 const powers=[
-"Hút máu","Giăng tơ","Phóng điện","Đóng băng","Thiêu đốt",
-"Tạo khiên","Bóng tối","Giáp đá","Tăng tốc","Hồi máu"
+"Hút máu đối thủ khi gây sát thương.",
+"Giăng tơ làm chậm đối thủ.",
+"Phóng điện gây sát thương.",
+"Đóng băng làm chậm đối thủ.",
+"Thiêu đốt gây sát thương theo thời gian.",
+"Hồi phục HP cho bản thân.",
+"Gây thêm sát thương bóng tối.",
+"Tạo sóng nước tấn công.",
+"Làm chậm thời gian của đối thủ.",
+"Tăng khả năng phòng thủ.",
+"Tạo lá chắn bảo vệ.",
+"Tăng sát thương khi HP thấp.",
+"Gây độc theo thời gian.",
+"Tăng tốc độ di chuyển.",
+"Tạo vùng không gian đặc biệt.",
+"Phản đòn khi bị tấn công."
 ];
 
+const categories=[
+"✦ Tất cả (100)",
+"🔥 Tấn công",
+"✚ Hồi phục",
+"🛡️ Phòng thủ",
+"⚡ Điện",
+"🕸️ Khống chế",
+"💧 Hút máu",
+"🌀 Đặc biệt"
+];
+
+function categoryOf(i){
+ if(i===0)return "Hút máu";
+ if(i===1)return "Khống chế";
+ if(i===2)return "Điện";
+ if(i===3||i===9||i===10)return "Phòng thủ";
+ if(i===5||i===23||i===60)return "Hồi phục";
+ if(i===4||i===11||i===12)return "Tấn công";
+ return "Đặc biệt";
+}
+
 const skins=names.map((name,i)=>({
- name,color:colors[i%colors.length],
- type:i%10,strength:1+(Math.floor(i/10)*.08)
+ id:i,
+ name,
+ color:colors[i%colors.length],
+ icon:icons[i%icons.length],
+ ornament:ornaments[i%ornaments.length],
+ power:categoryOf(i)==="Hút máu"?"Hút máu":
+       categoryOf(i)==="Khống chế"?"Khống chế":
+       categoryOf(i)==="Điện"?"Điện":
+       categoryOf(i)==="Hồi phục"?"Hồi phục":
+       powers[i%powers.length],
+ description:powers[i%powers.length],
+ category:categoryOf(i)
 }));
 
-for(let i=0;i<100;i++){
- pick1.add(new Option((i+1)+". "+names[i],i));
- pick2.add(new Option((i+1)+". "+names[i],i));
-}
-pick1.value=9;pick2.value=0;
+let selected=0;
+let equipped=0;
+let filter="Tất cả";
+let page=0;
+let round=1;
+let playing=true;
+let ended=false;
+let playerHP=100;
+let enemyHP=100;
+let enemySkin=1;
+let player,enemy;
+let particles=[];
+let lastAttack=0;
 
-let round=1,orbA,orbB,particles=[],running=true;
+const canvas=document.getElementById("arena");
+const ctx=canvas.getContext("2d");
+const W=700,H=700;
 
-function makeOrb(index,x,y){
+function makeOrb(x,y,skin){
  return {
-  skin:skins[index],x,y,
-  vx:(Math.random()*5-2.5)*SPEED,
-  vy:(Math.random()*5-2.5)*SPEED,
-  hp:100,r:29,cooldown:0,burn:0,freeze:0,shield:0
+  x,y,
+  vx:(Math.random()-.5)*8,
+  vy:(Math.random()-.5)*8,
+  r:31,
+  angle:0,
+  skin
  };
 }
 
-function log(msg){
- const box=document.getElementById("log");
- box.innerHTML=msg+"<br>"+box.innerHTML;
+function resetFight(){
+ playerHP=100;
+ enemyHP=100;
+ playing=true;
+ ended=false;
+ lastAttack=0;
+
+ enemySkin=Math.floor(Math.random()*100);
+ if(enemySkin===equipped)enemySkin=(enemySkin+1)%100;
+
+ player=makeOrb(150,350,equipped);
+ enemy=makeOrb(550,350,enemySkin);
+ particles=[];
+
+ updateUI();
+ document.getElementById("log").innerHTML="";
+ addLog("system","⚔ ROUND "+round+" BẮT ĐẦU!");
+ addLog("system","Đối thủ random: "+skins[enemySkin].name);
 }
 
 function restart(){
- orbA=makeOrb(+pick1.value,130,325);
- orbB=makeOrb(+pick2.value,520,325);
- particles=[];running=true;
- document.getElementById("status").textContent="Đang chiến đấu";
- document.getElementById("round").textContent=round;
- document.getElementById("log").innerHTML="";
- updateUI();
- log("⚔️ Round "+round+" bắt đầu!");
+ round=1;
+ resetFight();
 }
 
-function nextRound(){round++;restart()}
-function changeOrbs(){restart()}
+function nextRound(){
+ if(!ended){
+  addLog("system","Trận đấu chưa kết thúc!");
+  return;
+ }
+ round++;
+ resetFight();
+}
+
+function addLog(type,message){
+ const box=document.getElementById("log");
+ const line=document.createElement("div");
+ line.className="logline "+type;
+ line.textContent=message;
+ box.prepend(line);
+ while(box.children.length>20)box.lastChild.remove();
+}
 
 function updateUI(){
- document.getElementById("name1").textContent=orbA.skin.name;
- document.getElementById("name2").textContent=orbB.skin.name;
- document.getElementById("hp1").textContent=Math.max(0,Math.ceil(orbA.hp));
- document.getElementById("hp2").textContent=Math.max(0,Math.ceil(orbB.hp));
- document.getElementById("bar1").style.width=Math.max(0,orbA.hp)+"%";
- document.getElementById("bar2").style.width=Math.max(0,orbB.hp)+"%";
+ const p=skins[equipped];
+ const e=skins[enemySkin];
+
+ document.getElementById("playerIcon").textContent=p.icon;
+ document.getElementById("enemyIcon").textContent=e.icon;
+ document.getElementById("playerName").textContent=p.name;
+ document.getElementById("enemyName").textContent=e.name;
+
+ document.getElementById("playerHP").textContent=
+  "HP: "+Math.ceil(playerHP)+" / 100";
+ document.getElementById("enemyHP").textContent=
+  "HP: "+Math.ceil(enemyHP)+" / 100";
+
+ document.getElementById("playerBar").style.width=
+  Math.max(0,playerHP)+"%";
+ document.getElementById("enemyBar").style.width=
+  Math.max(0,enemyHP)+"%";
+
+ document.getElementById("roundText").textContent=
+  "ROUND "+round+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
 }
 
-function burst(x,y,color,count=12){
- for(let i=0;i<count;i++){
-  particles.push({x,y,vx:Math.random()*8-4,vy:Math.random()*8-4,life:30,color});
+function toggleSkins(){
+ document.getElementById("skinScreen").classList.toggle("show");
+ renderSkins();
+}
+
+function renderCategories(){
+ const el=document.getElementById("categories");
+ el.innerHTML="";
+
+ categories.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c;
+  if((i===0&&filter==="Tất cả")||c.includes(filter))b.classList.add("active");
+
+  b.onclick=()=>{
+   filter=i===0?"Tất cả":
+    ["Tấn công","Hồi phục","Phòng thủ","Điện","Khống chế","Hút máu","Đặc biệt"][i-1];
+   page=0;
+   renderSkins();
+  };
+  el.appendChild(b);
+ });
+}
+
+function renderSkins(){
+ renderCategories();
+
+ let list=skins.filter(s=>
+  filter==="Tất cả"||s.category===filter
+ );
+
+ const pages=Math.max(1,Math.ceil(list.length/20));
+ page=Math.min(page,pages-1);
+
+ document.getElementById("pageText").textContent=
+  (page+1)+" / "+pages;
+
+ const grid=document.getElementById("skinGrid");
+ grid.innerHTML="";
+
+ list.slice(page*20,page*20+20).forEach(s=>{
+  const d=document.createElement("button");
+  d.className="skin"+(s.id===selected?" selected":"");
+
+  d.innerHTML=`
+   <div class="skinball" style="background:${s.color};color:#111">
+    ${s.id+1}
+    <span class="ornament">${s.ornament}</span>
+   </div>
+   <small>#${String(s.id+1).padStart(2,"0")} ${s.name}</small>
+  `;
+
+  d.onclick=()=>{
+   selected=s.id;
+   renderSkins();
+  };
+
+  grid.appendChild(d);
+ });
+
+ showDetail();
+}
+
+function showDetail(){
+ const s=skins[selected];
+ const ball=document.getElementById("detailBall");
+
+ ball.textContent=s.icon;
+ ball.style.background=s.color;
+ ball.style.boxShadow="0 0 25px "+s.color;
+
+ document.getElementById("detailName").textContent=s.name;
+ document.getElementById("powerTag").textContent="✦ "+s.power;
+ document.getElementById("detailPower").textContent=s.description;
+
+ document.getElementById("equipMessage").textContent=
+  selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
+}
+
+function changePage(n){
+ let list=skins.filter(s=>filter==="Tất cả"||s.category===filter);
+ let pages=Math.max(1,Math.ceil(list.length/20));
+ page=Math.max(0,Math.min(pages-1,page+n));
+ renderSkins();
+}
+
+function equipSkin(){
+ equipped=selected;
+ resetFight();
+ showDetail();
+ addLog("player","✦ Đã trang bị "+skins[equipped].name);
+}
+
+function burst(x,y,color){
+ for(let i=0;i<12;i++){
+  particles.push({
+   x,y,
+   vx:(Math.random()-.5)*9,
+   vy:(Math.random()-.5)*9,
+   life:25,
+   color
+  });
  }
 }
 
-function damage(target,amount){
- if(target.shield>0){amount*=.35;target.shield--}
- target.hp-=amount;
- burst(target.x,target.y,target.skin.color,5);
+function drawOrb(o){
+ const s=skins[o.skin];
+
+ ctx.save();
+ ctx.shadowBlur=25;
+ ctx.shadowColor=s.color;
+ ctx.fillStyle=s.color;
+ ctx.beginPath();
+ ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.shadowBlur=0;
+ ctx.strokeStyle="#ffffffaa";
+ ctx.lineWidth=3;
+ ctx.stroke();
+
+ ctx.fillStyle="#17121a";
+ ctx.beginPath();
+ ctx.arc(o.x-10,o.y-5,4,0,Math.PI*2);
+ ctx.arc(o.x+10,o.y-5,4,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.strokeStyle="#17121a";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.arc(o.x,o.y+4,9,.2,Math.PI-.2);
+ ctx.stroke();
+
+ ctx.textAlign="center";
+ ctx.font="bold 13px Arial";
+ ctx.fillStyle="#fff";
+ ctx.fillText(s.name,o.x,o.y+o.r+19);
+
+ ctx.restore();
 }
 
-function usePower(a,b){
- const type=a.skin.type,p=a.skin.strength;
- switch(type){
- case 0:
-  a.hp=Math.min(100,a.hp+5*p);damage(b,5*p);
-  log("🧛 "+a.skin.name+" hút máu!");
-  break;
- case 1:
-  b.freeze=35;damage(b,4*p);log("🕷️ Nhện giăng tơ!");
-  break;
- case 2:
-  b.freeze=22;damage(b,9*p);burst(a.x,a.y,"#fff36b",20);
-  log("⚡ Điện giật!");
-  break;
- case 3:
-  b.freeze=65;damage(b,3*p);log("❄️ Đóng băng!");
-  break;
- case 4:
-  b.burn=100;damage(b,5*p);log("🔥 Thiêu đốt!");
-  break;
- case 5:
-  a.shield=3;damage(b,4*p);log("✨ Khiên bảo vệ!");
-  break;
- case 6:
-  damage(b,7*p);a.vx*=-1.5;a.vy*=-1.5;
-  log("🌑 Bóng tối tấn công!");
-  break;
- case 7:
-  a.shield=5;damage(b,3*p);log("🪨 Giáp đá!");
-  break;
- case 8:
-  a.vx*=1.8;a.vy*=1.8;damage(b,6*p);
-  log("🌪️ Cuồng phong!");
-  break;
- case 9:
-  a.hp=Math.min(100,a.hp+10*p);damage(b,3*p);
-  log("🌿 Hồi máu!");
-  break;
- }
-}
-
-function moveOrb(o){
- if(o.freeze>0){o.freeze--;return}
-
- if(o.burn>0){
-  o.burn--;
-  if(o.burn%20===0)o.hp-=1.5;
- }
- if(o.cooldown>0)o.cooldown--;
-
- // Tự lăn ngẫu nhiên: tốc độ x3
- o.vx+=(Math.random()-.5)*1.05;
- o.vy+=(Math.random()-.5)*1.05;
-
- const speed=Math.hypot(o.vx,o.vy);
- const maxSpeed=12.6;
- const minSpeed=3.6;
-
- if(speed>maxSpeed){
-  o.vx=o.vx/speed*maxSpeed;
-  o.vy=o.vy/speed*maxSpeed;
- }
- if(speed<minSpeed){
-  o.vx*=1.15;o.vy*=1.15;
- }
-
- o.x+=o.vx;o.y+=o.vy;
+function move(o){
+ o.x+=o.vx*1.15;
+ o.y+=o.vy*1.15;
 
  if(o.x<o.r||o.x>W-o.r)o.vx*=-1;
  if(o.y<o.r||o.y>H-o.r)o.vy*=-1;
 
  o.x=Math.max(o.r,Math.min(W-o.r,o.x));
  o.y=Math.max(o.r,Math.min(H-o.r,o.y));
-}
 
-function collide(){
- const dx=orbB.x-orbA.x,dy=orbB.y-orbA.y;
- const dist=Math.hypot(dx,dy);
+ if(Math.random()<.015){
+  o.vx+=(Math.random()-.5)*2;
+  o.vy+=(Math.random()-.5)*2;
+ }
 
- if(dist<orbA.r+orbB.r){
-  const nx=dx/(dist||1),ny=dy/(dist||1);
-  const overlap=orbA.r+orbB.r-dist;
-
-  orbA.x-=nx*overlap/2;orbA.y-=ny*overlap/2;
-  orbB.x+=nx*overlap/2;orbB.y+=ny*overlap/2;
-
-  const av=orbA.vx*nx+orbA.vy*ny;
-  const bv=orbB.vx*nx+orbB.vy*ny;
-
-  orbA.vx+=(bv-av)*nx;orbA.vy+=(bv-av)*ny;
-  orbB.vx+=(av-bv)*nx;orbB.vy+=(av-bv)*ny;
-
-  if(orbA.cooldown===0){
-   usePower(orbA,orbB);orbA.cooldown=45;
-  }
-  if(orbB.cooldown===0){
-   usePower(orbB,orbA);orbB.cooldown=45;
-  }
+ const speed=Math.hypot(o.vx,o.vy);
+ if(speed>7){
+  o.vx=o.vx/speed*7;
+  o.vy=o.vy/speed*7;
+ }
+ if(speed<2){
+  o.vx+=1;
+  o.vy-=.5;
  }
 }
 
+function attack(){
+ const now=Date.now();
+ if(now-lastAttack<650)return;
+ lastAttack=now;
+
+ const p=skins[equipped];
+ const e=skins[enemySkin];
+
+ let damage=10;
+ let enemyDamage=10;
+
+ if(p.category==="Tấn công")damage+=3;
+ if(p.category==="Hút máu"){
+  playerHP=Math.min(100,playerHP+damage*.2);
+ }
+ if(p.category==="Hồi phục"){
+  playerHP=Math.min(100,playerHP+5);
+ }
+ if(e.category==="Hút máu"){
+  enemyHP=Math.min(100,enemyHP+enemyDamage*.15);
+ }
+ if(e.category==="Hồi phục"){
+  enemyHP=Math.min(100,enemyHP+3);
+ }
+
+ enemyHP=Math.max(0,enemyHP-damage);
+ playerHP=Math.max(0,playerHP-enemyDamage);
+
+ burst((player.x+enemy.x)/2,(player.y+enemy.y)/2,"#ffffff");
+
+ addLog("player",p.icon+" "+p.name+" kích hoạt "+p.power+"!");
+ addLog("enemy",e.icon+" "+e.name+" phản công!");
+
+ updateUI();
+
+ if(enemyHP<=0||playerHP<=0){
+  ended=true;
+  playing=false;
+
+  addLog("system",enemyHP<=0?
+   "🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":
+   "💥 BẠN ĐÃ THUA ROUND "+round+"!");
+
+  updateUI();
+ }
+}
+
+function frame(){
+ ctx.clearRect(0,0,W,H);
+
+ ctx.strokeStyle="#30303a";
+ ctx.lineWidth=3;
+ ctx.strokeRect(2,2,W-4,H-4);
+
+ if(playing&&!ended){
+  move(player);
+  move(enemy);
+
+  const dx=enemy.x-player.x;
+  const dy=enemy.y-player.y;
+  const d=Math.hypot(dx,dy);
+
+  if(d<player.r+enemy.r){
+   const nx=dx/(d||1);
+   const ny=dy/(d||1);
+
+   player.vx=-nx*5;
+   player.vy=-ny*5;
+   enemy.vx=nx*5;
+   enemy.vy=ny*5;
+
+   attack();
+  }
+ }
+
+ drawOrb(player);
+ drawOrb(enemy);
+
+ 
 function drawOrb(o){
+ const s=skins[o.skin];
+ const x=o.x,y=o.y,r=o.r;
+ const id=o.skin%20;
+
  ctx.save();
- ctx.shadowBlur=18;ctx.shadowColor=o.skin.color;
- ctx.fillStyle=o.skin.color;
- ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();
- ctx.shadowBlur=0;
- ctx.strokeStyle="#171717";ctx.lineWidth=5;ctx.stroke();
+ ctx.translate(x,y);
 
- // Khuôn mặt quả cầu
- ctx.fillStyle="#111";
- ctx.beginPath();
- ctx.arc(o.x-10,o.y-5,4,0,7);
- ctx.arc(o.x+10,o.y-5,4,0,7);
- ctx.fill();
+ // Ánh sáng skin
+ ctx.shadowBlur=18;
+ ctx.shadowColor=s.color;
 
- ctx.strokeStyle="#111";ctx.lineWidth=3;
- ctx.beginPath();ctx.arc(o.x,o.y+5,8,.2,Math.PI-.2);ctx.stroke();
+ // Vẽ phụ kiện phía sau quả cầu
+ ctx.lineWidth=5;
+ ctx.lineCap="round";
+ ctx.lineJoin="round";
 
- // Hai răng nanh của Ma Cà Rồng
- if(o.skin.name==="Ma Cà Rồng"){
-  ctx.fillStyle="white";
+ function polygon(points,color){
+  ctx.fillStyle=color;
   ctx.beginPath();
-  ctx.moveTo(o.x-9,o.y+5);ctx.lineTo(o.x-5,o.y+16);ctx.lineTo(o.x-2,o.y+5);
-  ctx.moveTo(o.x+2,o.y+5);ctx.lineTo(o.x+5,o.y+16);ctx.lineTo(o.x+9,o.y+5);
+  ctx.moveTo(points[0][0],points[0][1]);
+  points.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));
+  ctx.closePath();
   ctx.fill();
  }
 
- // Trang trí nhận diện nhện
- if(o.skin.name==="Nhện Độc"){
-  ctx.strokeStyle="#222";ctx.lineWidth=3;
-  for(let i=-1;i<=1;i++){
+ function line(points,color,width=4){
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.beginPath();
+  ctx.moveTo(points[0][0],points[0][1]);
+  points.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));
+  ctx.stroke();
+ }
+
+ // 01 Ma cà rồng - răng nanh
+ if(id===0){
+  polygon([[-13,16],[-5,17],[-10,28]],"#fff");
+  polygon([[5,17],[13,16],[10,28]],"#fff");
+ }
+
+ // 02 Nhện - tám chân
+ if(id===1){
+  for(let side of [-1,1]){
+   for(let j=0;j<4;j++){
+    let yy=-15+j*10;
+    line([[side*25,yy],[side*39,yy-7],[side*45,yy+3]],"#eee",3);
+   }
+  }
+ }
+
+ // 03 Sét - tia điện
+ if(id===2){
+  polygon([[-5,-29],[8,-49],[4,-34],[17,-35],[-5,-10],[0,-27]],"#ffe52c");
+ }
+
+ // 04 Băng - tinh thể
+ if(id===3){
+  polygon([[-12,-27],[0,-52],[12,-27],[0,-12]],"#55dcff");
+  polygon([[0,-47],[0,-17],[12,-27]],"#bdf5ff");
+ }
+
+ // 05 Lửa - ngọn lửa
+ if(id===4){
+  polygon([[-23,-22],[-30,-43],[-18,-36],[-12,-57],[-3,-36],[7,-52],[12,-31],[25,-43],[23,-18]],"#ff7a22");
+  polygon([[-12,-23],[-8,-39],[0,-27],[9,-39],[13,-20]],"#ffdc56");
+ }
+
+ // 06 Thiên nhiên - lá cây
+ if(id===5){
+  ctx.fillStyle="#61ed72";
+  ctx.beginPath();
+  ctx.ellipse(-10,-36,10,18,-.6,0,Math.PI*2);
+  ctx.ellipse(10,-36,10,18,.6,0,Math.PI*2);
+  ctx.fill();
+  line([[0,-38],[0,-18]],"#277b37",3);
+ }
+
+ // 07 Bóng tối - sừng
+ if(id===6){
+  polygon([[-24,-19],[-34,-45],[-10,-30]],"#9d42ef");
+  polygon([[24,-19],[34,-45],[10,-30]],"#9d42ef");
+  polygon([[-10,-26],[0,-43],[10,-26]],"#542078");
+ }
+
+ // 08 Nước - giọt nước
+ if(id===7){
+  ctx.fillStyle="#55dfff";
+  ctx.beginPath();
+  ctx.moveTo(0,-51);
+  ctx.quadraticCurveTo(29,-20,0,-15);
+  ctx.quadraticCurveTo(-29,-20,0,-51);
+  ctx.fill();
+ }
+
+ // 09 Thời gian - đồng hồ cát
+ if(id===8){
+  line([[-12,-46],[12,-46],[0,-29],[12,-12],[-12,-12],[0,-29]],"#f4d5a0",5);
+  line([[-10,-44],[10,-44]],"#fff",3);
+  line([[-10,-14],[10,-14]],"#fff",3);
+ }
+
+ // 10 Đá - vết nứt
+ if(id===9){
+  line([[-15,-8],[-5,-18],[-10,-29],[4,-39],[0,-49]],"#555b66",3);
+  line([[15,5],[7,13],[15,24]],"#555b66",3);
+ }
+
+ // 11 Thiên thần - hào quang và cánh
+ if(id===10){
+  ctx.strokeStyle="#ffe9a0";
+  ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.ellipse(0,-42,17,6,0,0,Math.PI*2);
+  ctx.stroke();
+  polygon([[-25,-8],[-48,-28],[-42,-3],[-29,10]],"#fff");
+  polygon([[25,-8],[48,-28],[42,-3],[29,10]],"#fff");
+ }
+
+ // 12 Ác quỷ - hai sừng
+ if(id===11){
+  polygon([[-23,-17],[-34,-45],[-10,-29]],"#9b49ed");
+  polygon([[23,-17],[34,-45],[10,-29]],"#9b49ed");
+ }
+
+ // 13 Độc - gai độc
+ if(id===12){
+  for(let a=0;a<8;a++){
+   let ang=a*Math.PI/4;
+   polygon([
+    [Math.cos(ang)*27,Math.sin(ang)*27],
+    [Math.cos(ang)*43-4,Math.sin(ang)*43-4],
+    [Math.cos(ang)*27+5,Math.sin(ang)*27+5]
+   ],"#e83e67");
+  }
+ }
+
+ // 14 Gió - luồng gió
+ if(id===13){
+  ctx.strokeStyle="#52f3d5";
+  ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.arc(0,-22,23,Math.PI,Math.PI*1.8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(12,-31,10,0,Math.PI*1.7);
+  ctx.stroke();
+ }
+
+ // 15 Không gian - vòng quỹ đạo
+ if(id===14){
+  ctx.strokeStyle="#ed8aff";
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.ellipse(0,0,48,16,-.35,0,Math.PI*2);
+  ctx.stroke();
+ }
+
+ // 16 Sói - tai
+ if(id===15){
+  polygon([[-27,-12],[-31,-46],[-5,-27]],"#8992ad");
+  polygon([[27,-12],[31,-46],[5,-27]],"#8992ad");
+  polygon([[-24,-19],[-27,-37],[-12,-25]],"#e6b5cc");
+  polygon([[24,-19],[27,-37],[12,-25]],"#e6b5cc");
+ }
+
+ // 17 Mèo - tai và ria
+ if(id===16){
+  polygon([[-26,-12],[-29,-44],[-5,-25]],"#eee");
+  polygon([[26,-12],[29,-44],[5,-25]],"#eee");
+  line([[ -20,8],[-43,3]],"#fff",2);
+  line([[-20,14],[-43,17]],"#fff",2);
+  line([[20,8],[43,3]],"#fff",2);
+  line([[20,14],[43,17]],"#fff",2);
+ }
+
+ // 18 Cơ giới - mạch điện
+ if(id===17){
+  line([[-25,-20],[-40,-20],[-40,-38],[-20,-38]],"#35e5df",4);
+  line([[25,15],[42,15],[42,32]],"#35e5df",4);
+  ctx.fillStyle="#35e5df";
+  ctx.fillRect(-24,-42,8,8);
+  ctx.fillRect(38,28,8,8);
+ }
+
+ // 19 Ánh sáng - sao
+ if(id===18){
+  for(let a=0;a<4;a++){
+   let sx=(a%2?1:-1)*(30+a*5);
+   let sy=-30+(a%2)*45;
+   ctx.fillStyle="#ffe58b";
    ctx.beginPath();
-   ctx.moveTo(o.x-22,o.y+i*9);
-   ctx.lineTo(o.x-36,o.y+i*13);
-   ctx.moveTo(o.x+22,o.y+i*9);
-   ctx.lineTo(o.x+36,o.y+i*13);
-   ctx.stroke();
+   ctx.arc(sx,sy,5,0,Math.PI*2);
+   ctx.fill();
   }
  }
 
- ctx.fillStyle="white";ctx.font="bold 12px Arial";
- ctx.textAlign="center";ctx.fillText(o.skin.name,o.x,o.y+45);
+ // 20 Phóng xạ - biểu tượng
+ if(id===19){
+  ctx.fillStyle="#b9ff54";
+  ctx.beginPath();
+  ctx.arc(0,-39,14,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#151515";
+  ctx.font="bold 22px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("☢",0,-31);
+ }
+
+ // Thân quả cầu
+ ctx.shadowBlur=22;
+ ctx.shadowColor=s.color;
+ ctx.fillStyle=s.color;
+ ctx.beginPath();
+ ctx.arc(0,0,r,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.shadowBlur=0;
+ ctx.strokeStyle="#ffffffaa";
+ ctx.lineWidth=3;
+ ctx.stroke();
+
+ // Mắt
+ ctx.fillStyle="#17121a";
+ ctx.beginPath();
+ ctx.arc(-10,-5,4,0,Math.PI*2);
+ ctx.arc(10,-5,4,0,Math.PI*2);
+ ctx.fill();
+
+ // Miệng
+ ctx.strokeStyle="#17121a";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.arc(0,4,9,.2,Math.PI-.2);
+ ctx.stroke();
+
  ctx.restore();
+
+ // Tên skin bên dưới
+ ctx.textAlign="center";
+ ctx.font="bold 13px Arial";
+ ctx.fillStyle="#fff";
+ ctx.fillText(s.name,x,y+r+20);
 }
 
-function draw(){
- ctx.clearRect(0,0,W,H);
- ctx.strokeStyle="#333";ctx.lineWidth=4;
- ctx.strokeRect(2,2,W-4,H-4);
-
- particles.forEach(p=>{
-  ctx.globalAlpha=p.life/30;
-  ctx.fillStyle=p.color;
-  ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill();
-  p.x+=p.vx;p.y+=p.vy;p.life--;
- });
- ctx.globalAlpha=1;
- particles=particles.filter(p=>p.life>0);
-
- drawOrb(orbA);drawOrb(orbB);
+ requestAnimationFrame(frame);
 }
 
-function loop(){
- if(running){
-  moveOrb(orbA);
-  moveOrb(orbB);
-  collide();
-
-  if(orbA.hp<=0||orbB.hp<=0){
-   running=false;
-   const winner=orbA.hp>0?orbA:orbB;
-   document.getElementById("status").textContent="🏆 "+winner.skin.name+" chiến thắng!";
-   log("🏆 "+winner.skin.name+" thắng Round "+round+"!");
-  }
-  updateUI();
- }
- draw();
- requestAnimationFrame(loop);
-}
-
-restart();
-requestAnimationFrame(loop);
+resetFight();
+renderSkins();
+frame();
 </script>
 </body>
 </html>
-
