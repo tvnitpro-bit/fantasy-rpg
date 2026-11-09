@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fantasy RPG</title>
+<style>
+body{margin:0;background:#11152b;color:white;font-family:Arial;text-align:center;padding:18px}
+h1{color:#dfc2ff}
+.box{background:#22294a;padding:18px;border-radius:16px;margin:14px auto;max-width:450px}
+button,select{padding:13px;margin:6px;border:0;border-radius:10px;background:#7957c9;color:white;font-weight:bold}
+button{min-width:105px}
+.bar{height:15px;background:#444;border-radius:20px;margin:8px}
+.fill{height:100%;background:#53d995;border-radius:20px;width:100%}
+.enemy{font-size:65px}
+.hero{font-size:60px}
+#log{color:#e5d5ff;min-height:45px}
+</style>
+</head>
+<body>
+<h1>✦ FANTASY RPG ✦</h1>
+<p>Hành trình huyền thoại</p>
+
+<div class="box" id="setup">
+<h2>Chọn lớp nhân vật</h2>
+<select id="class">
+<option>Kiếm sĩ</option><option>Sát thủ</option>
+<option>Pháp sư</option><option>Cung thủ</option>
+<option>Hiệp sĩ</option><option>Triệu hồi sư</option>
+<option>Võ sĩ</option><option>Long thương</option>
+<option>Thánh chức</option><option>Ma kiếm sĩ</option>
+</select><br>
+<button onclick="start()">BẮT ĐẦU</button>
+</div>
+
+<div id="game" style="display:none">
+<div class="box">
+Lv.<b id="lv">1</b>　EXP <b id="exp">0</b>　🪙 <b id="gold">0</b>
+</div>
+<div class="box">
+<div class="hero" id="hero">⚔️</div>
+<h3 id="heroName">Kiếm sĩ</h3>
+HP <span id="hpText">120/120</span>
+<div class="bar"><div class="fill" id="hpBar"></div></div>
+MP <span id="mpText">60/60</span>
+<div class="bar"><div class="fill" id="mpBar" style="background:#54aaff"></div></div>
+<hr>
+<div class="enemy" id="monster">👹</div>
+<h3 id="monsterName">Slime rừng</h3>
+HP <span id="ehpText">80/80</span>
+<div class="bar"><div class="fill" id="ehpBar" style="background:#ed647b"></div></div>
+</div>
+<div class="box">
+<h3>⚔️ Kỹ năng</h3>
+<div id="skills"></div>
+</div>
+<div class="box">
+<p id="log">Quái vật xuất hiện! Hãy chiến đấu.</p>
+<button id="next" onclick="next()" style="display:none">Trận tiếp theo</button>
+</div>
+</div>
+
+<script>
+let name="",hp=120,mp=60,ehp=80,level=1,exp=0,gold=0,round=1,turn=false;
+let skills=["Đánh thường","Kỹ năng 1","Kỹ năng 2","Kỹ năng 3","Tuyệt kỹ"];
+function start(){
+ name=document.getElementById("class").value;
+ document.getElementById("setup").style.display="none";
+ document.getElementById("game").style.display="block";
+ document.getElementById("heroName").textContent=name;
+ let icons={"Kiếm sĩ":"⚔️","Sát thủ":"🗡️","Pháp sư":"🔮","Cung thủ":"🏹","Hiệp sĩ":"🛡️","Triệu hồi sư":"✨","Võ sĩ":"🥋","Long thương":"🔱","Thánh chức":"🌟","Ma kiếm sĩ":"🌑"};
+ document.getElementById("hero").textContent=icons[name];
+ document.getElementById("skills").innerHTML=skills.map((s,i)=>`<button onclick="attack(${i})">${s}</button>`).join("");
+ update();
+}
+function attack(i){
+ if(turn)return;
+ let cost=i*10;
+ if(mp<cost){say("MP không đủ!");return}
+ mp-=cost;
+ let damage=20+i*18+level*3;
+ ehp=Math.max(0,ehp-damage);
+ say("Bạn dùng "+skills[i]+" gây "+damage+" sát thương!");
+ update();
+ if(ehp<=0){
+ turn=true;gold+=30;exp+=40;
+ if(exp>=100){exp-=100;level++;hp=120+level*10;mp=60; say("CHIẾN THẮNG! Bạn lên cấp "+level+"!")}
+ else say("CHIẾN THẮNG! Nhận 30 vàng và 40 EXP!");
+ document.getElementById("next").style.display="inline-block";
+ update();return;
+ }
+ setTimeout(()=>{
+ if(turn)return;
+ hp=Math.max(0,hp-(12+round*3));
+ say("Quái vật phản công! Bạn mất HP.");
+ if(hp<=0){turn=true;say("Bạn đã thua! Nhấn Trận tiếp theo để hồi phục.")}
+ update();
+ },500);
+}
+function next(){
+ round++;ehp=80+round*20;
+ hp=120+level*10;mp=60;
+ turn=false;
+ document.getElementById("monster").textContent=["👹","🐺","🕷️","🗿","🐉"][round%5];
+ document.getElementById("monsterName").textContent="Quái vật cấp "+round;
+ document.getElementById("next").style.display="none";
+ say("Một đối thủ mới xuất hiện!");
+ update();
+}
+function say(t){document.getElementById("log").textContent=t}
+function update(){
+ document.getElementById("lv").textContent=level;
+ document.getElementById("exp").textContent=exp;
+ document.getElementById("gold").textContent=gold;
+ document.getElementById("hpText").textContent=hp+"/"+(120+level*10);
+ document.getElementById("mpText").textContent=mp+"/60";
+ document.getElementById("ehpText").textContent=ehp+"/"+(80+round*20);
+ document.getElementById("hpBar").style.width=hp/(120+level*10)*100+"%";
+ document.getElementById("mpBar").style.width=mp/60*100+"%";
+ document.getElementById("ehpBar").style.width=ehp/(80+round*20)*100+"%";
+}
+</script>
+</body>
+</html>
