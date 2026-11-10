@@ -10,6 +10,14 @@ CIRCLE BATTLE is a lightweight HTML5 Canvas orb-battle game.
 
 No build tools or external libraries are required.
 
+## Version 0.3 update
+
+- Arena canvas reduced to 620 × 400; orb movement is clamped with extra clearance for fins and orbiting weapons.
+- Each orb now has its own base HP and damage values, separate from its independently equipped skill.
+- Sun orbs fire light projectiles; bow orbs fire arrows; staff orbs fire magic.
+- Daggers, swords, spears, clubs and water blades deal damage only when the orbiting weapon touches an opponent orb.
+- Every shield-type orb can block an incoming weapon hit. Weapon-to-weapon contact remains harmless.
+
 ## Current gameplay
 
 - 100 selectable orb skins, organized into collection categories.
