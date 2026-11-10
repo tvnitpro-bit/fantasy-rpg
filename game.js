@@ -920,7 +920,7 @@ function frame(now){
  updateParticles(dt);
  drawSpiderWebs();drawPoisonClouds();projectiles.forEach(drawProjectile);drawParticles();
  drawOrb(player);for(const foe of [enemy,enemy2])if(foe&&getHP(foe)>0)drawOrb(foe);
- drawOrbHP(player);if(enemy)drawOrbHP(enemy);if(enemy2&&getHP(enemy2)>0)drawOrbHP(enemy2);
+ drawOrbHP(player);if(enemy&&getHP(enemy)>0)drawOrbHP(enemy);if(enemy2&&getHP(enemy2)>0)drawOrbHP(enemy2);
  requestAnimationFrame(frame);
 }
 function init(){
