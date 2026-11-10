@@ -432,7 +432,7 @@ function moveOrb(o,dt,target){
    o.vy=o.vy*.97+desiredY*.03;
   }
   const speedBonus=o.ability===13?1.1:1;
-  o.x+=o.vx*dt*100*speedBonus;o.y+=o.vy*dt*100*speedBonus;
+  o.x+=o.vx*dt*33.33*speedBonus;o.y+=o.vy*dt*33.33*speedBonus;
   clampOrbToArena(o);
   const speed=Math.hypot(o.vx,o.vy);
   if(speed>1.25){o.vx=o.vx/speed*1.25;o.vy=o.vy/speed*1.25;}
