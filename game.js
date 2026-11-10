@@ -81,8 +81,26 @@ const skins = names.map((name,id) => {
  };
 });
 
+const abilities = [
+ {name:"Hút máu",desc:"Hồi lại một phần HP mỗi khi đánh trúng.",color:"#f36c91",icon:"♥"},
+ {name:"Giăng tơ",desc:"Làm chậm tốc độ di chuyển của đối thủ.",color:"#d9dce8",icon:"✳"},
+ {name:"Điện giật",desc:"Tạo tia điện gây sát thương phụ.",color:"#ffe13c",icon:"ϟ"},
+ {name:"Đóng băng",desc:"Làm chậm đối thủ bằng hiệu ứng băng.",color:"#43c8ff",icon:"❄"},
+ {name:"Thiêu đốt",desc:"Gây sát thương lửa theo thời gian.",color:"#ff8b30",icon:"♨"},
+ {name:"Sinh trưởng",desc:"Hồi phục một lượng HP nhỏ theo thời gian.",color:"#55e66d",icon:"❀"},
+ {name:"Bóng tối",desc:"Tăng sát thương của đòn đánh bóng tối.",color:"#9b54e8",icon:"☾"},
+ {name:"Thủy triều",desc:"Phóng một đợt sóng nước về phía đối thủ.",color:"#4fc7ee",icon:"≈"},
+ {name:"Thời gian",desc:"Làm chậm nhịp di chuyển của đối thủ.",color:"#f1d4a3",icon:"◷"},
+ {name:"Thạch giáp",desc:"Giảm sát thương nhận vào.",color:"#999da8",icon:"⬟"},
+ {name:"Thiên thần",desc:"Tăng khả năng hồi phục.",color:"#ffffff",icon:"✧"},
+ {name:"Ác quỷ",desc:"Tăng sát thương khi đối thủ còn ít HP.",color:"#8c50c9",icon:"♆"},
+ {name:"Độc tố",desc:"Gây hiệu ứng độc theo thời gian.",color:"#ec4770",icon:"☣"},
+ {name:"Phong tốc",desc:"Tăng tốc độ di chuyển.",color:"#4fe8ca",icon:"〰"},
+ {name:"Không gian",desc:"Tạo xung lực không gian quanh quả cầu.",color:"#ec78d9",icon:"✦"},
+ {name:"Phản đòn",desc:"Có cơ hội phản lại một phần sát thương.",color:"#8186a9",icon:"↶"}
+];
 const categories = ["✦ Tất cả (100)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt"];
-let selected=0, equipped=0, filter="Tất cả", page=0, round=1;
+let selected=0, equipped=0, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
 let player=null, enemy=null, projectiles=[], particles=[], lastFrame=0;
 let logTimer=0;
@@ -142,20 +160,46 @@ function renderCategories(){
   b.onclick=()=>{filter=f;page=0;renderSkins();};el.appendChild(b);
  });
 }
+function setCollectionTab(tab){
+ collectionTab=tab;
+ $("skinTab").classList.toggle("active",tab==="skin");
+ $("abilityTab").classList.toggle("active",tab==="ability");
+ $("categories").style.display=tab==="skin"?"flex":"none";
+ filter="Tất cả";page=0;renderSkins();
+}
 function renderSkins(){
- renderCategories();
- const list=skins.filter(s=>filter==="Tất cả"||s.category===filter);
+ $("skinTab").classList.toggle("active",collectionTab==="skin");
+ $("abilityTab").classList.toggle("active",collectionTab==="ability");
+ $("categories").style.display=collectionTab==="skin"?"flex":"none";
+ const list=collectionTab==="skin" ? skins.filter(s=>filter==="Tất cả"||s.category===filter) : abilities;
  const pages=Math.max(1,Math.ceil(list.length/20));page=Math.min(page,pages-1);
  $("pageText").textContent=(page+1)+" / "+pages;
+ $("skinHeading").textContent=collectionTab==="skin"?"Ngoại hình · 100 quả cầu":"Kỹ năng · 16 chiêu thức";
+ $("collectionCount").textContent=collectionTab==="skin"?"(100/100)":"(16/16)";
  const grid=$("skinGrid");grid.innerHTML="";
- list.slice(page*20,page*20+20).forEach(s=>{
-  const b=document.createElement("button");b.className="skin"+(s.id===selected?" selected":"");
-  b.innerHTML='<div class="skinball" style="background:'+s.color+';color:#17121a">'+(s.id+1)+'</div><small>#'+String(s.id+1).padStart(2,"0")+' '+s.name+'</small>';
-  b.onclick=()=>{selected=s.id;renderSkins();};grid.appendChild(b);
+ list.slice(page*20,page*20+20).forEach((s,i)=>{
+  const id=collectionTab==="skin"?s.id:i;
+  const active=collectionTab==="skin"?id===selected:id===selectedAbility;
+  const b=document.createElement("button");b.className="skin"+(active?" selected":"");
+  const color=s.color||s.color||s.color;
+  const label=collectionTab==="skin"?"#"+String(id+1).padStart(2,"0")+" "+s.name:s.name;
+  const symbol=collectionTab==="skin"?(id+1):s.icon;
+  b.innerHTML='<div class="skinball" style="background:'+(s.color||"#ddd")+';color:#17121a">'+symbol+'</div><small>'+label+'</small>';
+  b.onclick=()=>{if(collectionTab==="skin")selected=id;else selectedAbility=id;renderSkins();};grid.appendChild(b);
  });
  showDetail();
 }
 function showDetail(){
+ if(collectionTab==="ability"){
+  const a=abilities[selectedAbility],ball=$("detailBall");
+  ball.textContent=a.icon;ball.style.background=a.color;ball.style.boxShadow="0 0 25px "+a.color;
+  $("detailName").textContent=a.name;
+  $("powerTag").textContent="✦ Kỹ năng riêng";
+  $("detailPower").textContent=a.desc;
+  $("detailWeapon").textContent="Kỹ năng được trang bị độc lập, không thay đổi ngoại hình hay vũ khí của quả cầu.";
+  $("equipMessage").textContent=selectedAbility===equippedAbility?"✓ Đang trang bị":"Có thể trang bị";
+  return;
+ }
  const s=skins[selected],ball=$("detailBall");
  ball.textContent=String(s.id+1);ball.style.background=s.color;ball.style.boxShadow="0 0 25px "+s.color;
  $("detailName").textContent=s.name;
@@ -166,12 +210,19 @@ function showDetail(){
  $("equipMessage").textContent=selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
 }
 function changePage(n){
- const list=skins.filter(s=>filter==="Tất cả"||s.category===filter);
+ const list=collectionTab==="skin"?skins.filter(s=>filter==="Tất cả"||s.category===filter):abilities;
  page=Math.max(0,Math.min(Math.max(1,Math.ceil(list.length/20))-1,page+n));renderSkins();
 }
 function equipSkin(){
+ if(collectionTab==="ability"){
+  equippedAbility=selectedAbility;
+  if(player)player.ability=equippedAbility;
+  showDetail();
+  addLog("player","✦ Đã trang bị kỹ năng "+abilities[equippedAbility].name);
+  return;
+ }
  equipped=selected;resetFight();showDetail();
- addLog("player","✦ Đã trang bị "+skins[equipped].name+" · "+skins[equipped].weaponInfo.name);
+ addLog("player","✦ Đã trang bị ngoại hình "+skins[equipped].name+" · "+skins[equipped].weaponInfo.name);
 }
 function burst(x,y,color,count=12){
  for(let i=0;i<count;i++){
@@ -203,6 +254,29 @@ function drawOrb(o){
   ctx.save();ctx.strokeStyle="#ffe17a";ctx.lineWidth=3;
   for(let a=0;a<8;a++){const q=a*Math.PI/4;ctx.beginPath();ctx.moveTo(Math.cos(q)*34,Math.sin(q)*34);ctx.lineTo(Math.cos(q)*43,Math.sin(q)*43);ctx.stroke();}
   ctx.restore();
+ }
+ // Hinh dang dac trung theo chu de nang luc, van giu than cau tron don gian.
+ if([3,21,37,38,83].includes(o.skin)){
+  for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.save();ctx.rotate(a);polygon([[-5,-r+5],[0,-r-10],[5,-r+5]],"#dff8ff","#ffffff");ctx.restore();}
+ }
+ if([4,22,35,82,97].includes(o.skin)){
+  for(let k=0;k<7;k++){const a=-Math.PI/2+k*Math.PI/3.5;ctx.save();ctx.rotate(a);polygon([[-6,-r+4],[0,-r-13],[7,-r+4]],k%2?"#ffb02e":"#ff5b28","#ffd56a");ctx.restore();}
+ }
+ if([2,34,80].includes(o.skin)){
+  ctx.strokeStyle="#fff27a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-r-8,-4);ctx.lineTo(-8,-17);ctx.lineTo(1,-2);ctx.lineTo(12,-18);ctx.lineTo(r+8,-5);ctx.stroke();
+ }
+ if([8,54,94].includes(o.skin)){
+  ctx.strokeStyle="#ffe9bd";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r+8,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-17);ctx.moveTo(0,0);ctx.lineTo(12,5);ctx.stroke();
+ }
+ if([5,23,58,59,60,61].includes(o.skin)){
+  for(const side of [-1,1]){ctx.save();ctx.scale(side,1);polygon([[r-4,-4],[r+12,-17],[r+8,0],[r+15,12],[r-3,8]],"#54bd62","#c8ffba");ctx.restore();}
+ }
+ if([7,30,31,32,33,66,76,77].includes(o.skin)){
+  ctx.fillStyle="#8deeff";ctx.beginPath();ctx.ellipse(0,-r-6,5,11,0,0,Math.PI*2);ctx.fill();
+ }
+ if(o.skin===25){
+  ctx.save();ctx.translate(r+5,0);polygon([[-5,-14],[10,-10],[11,5],[2,17],[-8,5]],"#b9c8de","#ffffff");ctx.restore();
  }
  // Body
  ctx.shadowBlur=18;ctx.shadowColor=s.color;ctx.fillStyle=s.color;
@@ -409,6 +483,7 @@ function init(){
 window.restart=restart;
 window.nextRound=nextRound;
 window.toggleSkins=toggleSkins;
+window.setCollectionTab=setCollectionTab;
 window.changePage=changePage;
 window.equipSkin=equipSkin;
 init();
