@@ -161,7 +161,8 @@ function showDetail(){
  $("detailName").textContent=s.name;
  $("powerTag").textContent="✦ "+s.power;
  $("detailPower").textContent=s.description;
- $("detailWeapon").textContent=s.weaponInfo.name+" — "+s.weaponInfo.desc+(s.trait?" Đặc điểm: "+s.trait+".":"");
+ const weaponLabel=s.id===25?"Kiếm + Khiên":s.weaponInfo.name;
+ $("detailWeapon").textContent=weaponLabel+" — "+s.weaponInfo.desc+(s.trait?" Đặc điểm: "+s.trait+".":"");
  $("equipMessage").textContent=selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
 }
 function changePage(n){
