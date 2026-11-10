@@ -356,7 +356,7 @@ function drawProjectile(p){
 }
 function clampOrbToArena(o){
  // Luon lay kich thuoc canvas that, khong phu thuoc kich thuoc CSS/responsive.
- const w=canvas.width,h=canvas.height,pad=o.r+47;
+ const w=canvas.width,h=canvas.height,pad=o.r+52;
  const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
  if(!Number.isFinite(o.x)||!Number.isFinite(o.y)){
   o.x=o.side?w-pad:pad;o.y=h/2;o.vx=o.side?-2.6:2.6;o.vy=0;
@@ -408,12 +408,12 @@ function fireIfNeeded(o,target){
   vy:dy/d*(type==="bow"?7.5:type==="sun"?9:5.2),
   r:type==="sun"?7:5,life:2.1,owner:o,
   type:type==="bow"?"arrow":type==="sun"?"sunbeam":"magic",
-  damage:Math.max(3,Math.round(s.damage+abilities[o.ability].damage*.25)),color:s.weaponInfo.color
+  damage:Math.max(3,Math.round(s.damage)),color:s.weaponInfo.color
  });
  addLog(o===player?"player":"enemy",s.name+" "+(type==="bow"?"bắn tên":type==="sun"?"phóng tia sáng":"phóng phép")+"!");
 }
 function shieldBlocks(target,attacker){
- if(target.skin!==25||target.shieldCooldown>0)return false;
+ if(skins[target.skin].weapon!=="shield"||target.shieldCooldown>0)return false;
  target.shieldCooldown=2.8;target.flash=.35;
  burst(target.x,target.y,"#dceaff",9);
  addLog(target===player?"player":"enemy","🛡 Khiên Chiến Sĩ chặn đòn!");
