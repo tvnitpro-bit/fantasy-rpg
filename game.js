@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:45,skin,ability:abilityId,
+  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:22.5,skin,ability:abilityId,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -365,7 +365,7 @@ function drawOrbHP(o){
  ctx.restore();
 }
 function drawShield(o,faceAngle){
- ctx.save();ctx.translate(o.x,o.y);ctx.rotate(faceAngle);
+ ctx.save();ctx.translate(o.x,o.y);ctx.rotate(faceAngle);ctx.scale(2,2);
  // Small flat shield to the incoming side
  ctx.translate(o.r+8,0);
  ctx.fillStyle="#b9c8de";ctx.strokeStyle="#f3f6ff";ctx.lineWidth=2;
@@ -373,7 +373,7 @@ function drawShield(o,faceAngle){
  ctx.restore();
 }
 function drawWeapon(type,x,y,angle,color){
- ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);ctx.scale(2,2);
  ctx.lineCap="round";ctx.lineJoin="round";
  if(type==="sword"||type==="water"){
   ctx.fillStyle=type==="water"?"#87edff":"#e6edf8";
@@ -394,7 +394,7 @@ function drawWeapon(type,x,y,angle,color){
  ctx.restore();
 }
 function drawProjectile(p){
- ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));
+ ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));ctx.scale(2,2);
  if(p.type==="it"){ctx.shadowBlur=22;ctx.shadowColor="#ff315e";ctx.fillStyle="#ff466d";ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffb5c5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.stroke();}
  else if(p.type==="yellowwater"||p.type==="bluewater"){ctx.shadowBlur=17;ctx.shadowColor=p.color;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffffffaa";ctx.beginPath();ctx.arc(-2,-2,2,0,Math.PI*2);ctx.fill();}
  else if(p.type==="arrow"){
@@ -434,7 +434,7 @@ function moveOrb(o,dt,target){
    o.vy=o.vy*.94+desiredY*.06;
   }
   const speedBonus=o.ability===13?1.1:1;
-  o.x+=o.vx*dt*33.33*speedBonus;o.y+=o.vy*dt*33.33*speedBonus;
+  o.x+=o.vx*dt*66.66*speedBonus;o.y+=o.vy*dt*33.33*speedBonus;
   clampOrbToArena(o);
   const speed=Math.hypot(o.vx,o.vy);
   if(speed>1.25){o.vx=o.vx/speed*1.25;o.vy=o.vy/speed*1.25;}
@@ -465,7 +465,7 @@ function fireIfNeeded(o,target){
   x:o.x+dx/d*(o.r+8),y:o.y+dy/d*(o.r+8),
   vx:dx/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
   vy:dy/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
-  r:type==="it"?8:6,life:2.1,owner:o,
+  r:type==="it"?16:12,life:2.1,owner:o,
   type:type==="bow"?"arrow":(s.projectile||"magic"),
   damage:s.rank==="S"?s.baseDamage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
  });
