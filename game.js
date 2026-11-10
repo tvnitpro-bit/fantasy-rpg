@@ -51,7 +51,8 @@ const weaponInfo = {
  bow:{name:"Cung",desc:"Cung đi theo quỹ đạo quanh quả cầu và bắn mũi tên năng lượng về phía mục tiêu.",damage:10,color:"#9affbd"},
  sun:{name:"Tia sáng",desc:"Quả cầu Ánh Dương bắn tia sáng vàng trực tiếp về phía đối thủ.",damage:12,color:"#ffe57a"},
  water:{name:"Lưỡi nước",desc:"Cá Mập có vây cá mập đơn giản và lưỡi nước xoay quanh quả cầu.",damage:10,color:"#7ceaff"},
- shield:{name:"Khiên",desc:"Khiên đi bên cạnh quả cầu, chặn một đòn rồi cần thời gian hồi lại.",damage:5,color:"#d6e0ef"}
+ shield:{name:"Khiên",desc:"Khiên đi bên cạnh quả cầu, chặn một đòn rồi cần thời gian hồi lại.",damage:5,color:"#d6e0ef"},
+  web:{name:"Tơ nhện",desc:"Nhện không cầm kiếm; giăng tơ bẫy đối thủ trên sàn đấu.",damage:5,color:"#d9f5b4"}
 };
 
 const powers = [
@@ -66,6 +67,7 @@ const skins = names.map((name,id) => {
  const weapon = weaponById(id);
  let trait = "";
  if (id === 0) trait = "Hai răng nanh nhọn";
+  if (id === 1) trait = "Tám chân nhện và giăng tơ";
  if (id === 25) trait = "Khiên chiến binh";
  if (id === 46) trait = "Tia sáng vàng";
  if (id === 66) trait = "Vây cá mập";
@@ -76,6 +78,7 @@ const skins = names.map((name,id) => {
   baseDamage: [0,25,9,10,66].includes(id) ? ({0:12,25:9,9:8,10:11,66:14}[id]) : 8 + ((id*7)%13),
   power:categoryById(id),
   description: id===0 ? "Có đúng hai răng nanh nhỏ ở phần dưới quả cầu; hút lại một phần HP khi đánh trúng." :
+     id===1 ? "Tám chân nhện nhỏ; cứ mỗi 5 giây giăng tơ trên sàn để bẫy đối thủ." :
     id===25 ? "Có một chiếc khiên bên cạnh quả cầu. Khiên chặn đòn định kỳ." :
     id===46 ? "Bắn tia sáng vàng từ tâm quả cầu; không cần vũ khí cầm tay." :
     id===66 ? "Có vây cá mập ở trên đầu và hai vây nhỏ hai bên." :
@@ -393,7 +396,7 @@ function drawOrb(o){
  }
 
  // Spider orb: eight short jointed legs around a round body.
- if(o.skin===115){
+ if(o.skin===1||o.skin===115){
   ctx.save();ctx.strokeStyle="#34452b";ctx.lineWidth=4;ctx.lineCap="round";ctx.lineJoin="round";
   for(const side of [-1,1])for(let k=0;k<4;k++){
    const y=-19+k*12,rootX=side*24,midX=side*34,endX=side*43;
@@ -624,7 +627,7 @@ function hitOrb(target,attacker,damage,type){
  if(attacker.ability===20){if(isPlayerTarget)enemyHP=Math.max(0,enemyHP-6);else playerHP=Math.max(0,playerHP-6);burst(target.x,target.y,"#ffbd72",14);}
  if(attacker.ability===21)damage=Math.round(damage*1.18);
  if(attacker.ability===23)burst(target.x,target.y,"#fff27a",12);
- if(attacker.ability===26)spiderWebs.push({x:target.x,y:target.y,r:27,hits:0,maxHits:2,lockout:.9,life:15,owner:attacker});
+ if(attacker.ability===26||attacker.skin===1||attacker.skin===115)spiderWebs.push({x:target.x,y:target.y,r:27,hits:0,maxHits:2,lockout:.9,life:15,owner:attacker});
  burst(target.x,target.y,type==="sunbeam"?"#ffe57a":type==="arrow"?"#e9f2ff":"#ffffff",10);
  addLog(attacker===player?"player":"enemy",skins[attacker.skin].name+" đánh trúng thân quả cầu, gây "+damage+" sát thương!");
  updateUI();
@@ -772,7 +775,7 @@ function checkOrbitWeaponHits(){
 function updateSpiderTraps(dt){
  // Each active spider lays one web every five seconds near the opponent's path.
  for(const spider of [player,enemy]){
-  if(!spider||spider.ability!==26)continue;
+  if(!spider||(spider.ability!==26&&spider.skin!==1&&spider.skin!==115))continue;
   spider.webShotTimer=(spider.webShotTimer??5)-dt;
   if(spider.webShotTimer<=0){
    const target=spider===player?enemy:player;
