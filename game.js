@@ -407,19 +407,30 @@ function drawProjectile(p){
  ctx.restore();
 }
 function clampOrbToArena(o){
- // Luon lay kich thuoc canvas that, khong phu thuoc kich thuoc CSS/responsive.
- const w=canvas.width,h=canvas.height,pad=o.r+3;
- const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
- if(!Number.isFinite(o.x)||!Number.isFinite(o.y)){
-  o.x=o.side?w-pad:pad;o.y=h/2;o.vx=o.side?-2.6:2.6;o.vy=0;
- }
- if(o.x<minX){o.x=minX;o.vx=Math.abs(o.vx)||2.2;}
- if(o.x>maxX){o.x=maxX;o.vx=-Math.abs(o.vx)||-2.2;}
- if(o.y<minY){o.y=minY;o.vy=Math.abs(o.vy)||2.2;}
- if(o.y>maxY){o.y=maxY;o.vy=-Math.abs(o.vy)||-2.2;}
- // Chot chan toa do sau moi lan cap nhat, ke ca sau va cham.
- o.x=Math.max(minX,Math.min(maxX,o.x));
- o.y=Math.max(minY,Math.min(maxY,o.y));
+  const w=canvas.width,h=canvas.height,pad=o.r+3;
+  const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
+  if(!Number.isFinite(o.x)||!Number.isFinite(o.y)){
+   o.x=o.side?w-pad:pad;o.y=h/2;
+   const a=Math.random()*Math.PI*2;
+   o.vx=Math.cos(a)*1.2;o.vy=Math.sin(a)*1.2;
+  }
+  // Bat tuong phan xa ro rang: khong de qua cau dung/luot doc canh san.
+  if(o.x<=minX){
+   o.x=minX;
+   if(o.vx<=0){o.vx=Math.max(.85,Math.abs(o.vx));o.vy+=(Math.random()-.5)*.18;}
+  }else if(o.x>=maxX){
+   o.x=maxX;
+   if(o.vx>=0){o.vx=-Math.max(.85,Math.abs(o.vx));o.vy+=(Math.random()-.5)*.18;}
+  }
+  if(o.y<=minY){
+   o.y=minY;
+   if(o.vy<=0){o.vy=Math.max(.85,Math.abs(o.vy));o.vx+=(Math.random()-.5)*.18;}
+  }else if(o.y>=maxY){
+   o.y=maxY;
+   if(o.vy>=0){o.vy=-Math.max(.85,Math.abs(o.vy));o.vx+=(Math.random()-.5)*.18;}
+  }
+  o.x=Math.max(minX,Math.min(maxX,o.x));
+  o.y=Math.max(minY,Math.min(maxY,o.y));
 }
 function moveOrb(o,dt){
   o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
