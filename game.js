@@ -621,7 +621,7 @@ function fireIfNeeded(o,target){
  projectiles.push({
   x:o.x+dx/d*(type==="poisonray"?0:o.r+8),y:o.y+dy/d*(type==="poisonray"?0:o.r+8),
   vx:dx/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:type==="hopebolt"?6.8:6.1),
-  vy:dy/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:type==="hopebolt"?6.8:6.1),
+  vy:type==="hopebolt"?6.8:dy/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:6.1),
   r:type==="it"?16:type==="poisonray"?9:12,life:2.4,owner:o,bounces:0,
   type:type==="bow"?"arrow":type==="hopebolt"?"hopebounce":(s.projectile||"magic"),
   damage:s.rank==="S"||s.id>=116?s.baseDamage:Math.max(3,Math.round(s.baseDamage+(abilities[o.ability]?.damage||0)*.2)),color:s.weaponInfo.color
@@ -781,6 +781,7 @@ function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
   const p=projectiles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;
   if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
+  if(p.type==="hopebounce"&&p.bounces===0){if(p.life<=0||p.x<0||p.x>W)projectiles.splice(i,1);continue;}
   const target=nearestTarget(p.owner);if(!target){projectiles.splice(i,1);continue;}
   // The defender's rotating weapon or shield can intercept an incoming projectile.
   if(weaponBlocksProjectile(target,p)){
