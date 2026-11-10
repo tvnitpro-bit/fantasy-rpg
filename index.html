@@ -17,6 +17,7 @@ main{max-width:1100px;margin:auto;padding:12px}
 canvas{display:block;width:100%;aspect-ratio:700/480;background:#000;border-radius:11px}
 .panel{margin-top:13px;padding:14px;background:linear-gradient(145deg,#1c1d2b,#10121b);border:1px solid #414158;border-radius:18px;box-shadow:0 8px 24px #0009}
 .status{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status.double-enemy{grid-template-columns:repeat(3,minmax(0,1fr))}
 .fighter{text-align:center;padding:12px 7px;border-radius:14px;background:#172b20;border:1px solid #3d6948}
 .fighter.enemy{background:#301a28;border-color:#704054}
 .fighter h3{margin:7px 0;font-size:17px}
@@ -93,7 +94,7 @@ button:active{transform:scale(.97)}
 <body>
 <header>
 <h1>✦ CIRCLE BATTLE ✦</h1>
-<p>105 NGOẠI HÌNH · 16 KỸ NĂNG RIÊNG · AUTO BATTLE</p>
+<p>146 QUẢ CẦU · 27 KỸ NĂNG · AUTO BATTLE</p>
 </header>
 
 <main>
@@ -114,16 +115,22 @@ button:active{transform:scale(.97)}
   <h3 id="enemyName">Đối thủ</h3>
   <div class="hp-text" id="enemyHP">HP: 100 / 100</div>
   <div class="hpbar"><div class="hpfill red" id="enemyBar"></div></div>
+  <div class="fighter enemy" id="enemy2Card" style="display:none;background:#292b35;border-color:#5b6475">
+  <div class="icon" style="color:#aeb8c8">●</div>
+  <h3 id="enemy2Name">NPC cơ bản 2</h3>
+  <div class="hp-text" id="enemy2HP">HP: 0 / 0</div>
+  <div class="hpbar"><div class="hpfill red" id="enemy2Bar"></div></div>
  </div>
 </div>
 
 <div class="round" id="roundText">ROUND 1 · ĐANG CHIẾN ĐẤU</div>
 <div class="buttons">
  <button onclick="restart()">↻ Chơi lại</button>
- <button class="primary" onclick="nextRound()">▶ Round tiếp</button>
+ <button onclick="startCampaign()">🏆 Chiến dịch 10 ải</button>
+ <button class="primary" onclick="nextRound()">▶ Ải / Round tiếp</button>
 </div>
 
-<button class="skin-open" onclick="toggleSkins()">✦ SKIN & NĂNG LỰC · 105 QUẢ CẦU</button>
+<button class="skin-open" onclick="toggleSkins()">✦ SKIN & NĂNG LỰC · 146 QUẢ CẦU</button>
 
 <h3 class="section-title" style="margin-top:17px">⚔ Diễn biến trận đấu</h3>
 <div class="battle-log" id="log"></div>
@@ -131,8 +138,8 @@ button:active{transform:scale(.97)}
 
 <section class="skin-screen" id="skinScreen">
  <div class="skin-heading">
-  <h2 id="skinHeading">Ngoại hình · 116 quả cầu</h2>
-  <span id="collectionCount">(116/116)</span>
+  <h2 id="skinHeading">Ngoại hình · 146 quả cầu</h2>
+  <span id="collectionCount">(146/146)</span>
  </div>
  <div class="collection-tabs">
   <button id="skinTab" class="active" onclick="setCollectionTab('skin')">Ngoại hình</button>
@@ -172,7 +179,7 @@ button:active{transform:scale(.97)}
 </section>
 </main>
 
-<script src="game.js?v=weapon-hit-spin-fix"></script>
+<script src="game.js?v=campaign-30-orbs-v3"></script>
 
 </body>
 </html>
