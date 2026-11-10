@@ -89,7 +89,7 @@ let logTimer=0;
 
 const canvas=document.getElementById("arena");
 const ctx=canvas.getContext("2d");
-const W=700,H=700;
+const W=700,H=480;
 const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side){
@@ -264,7 +264,7 @@ function drawProjectile(p){
  ctx.restore();
 }
 function moveOrb(o,dt){
- o.weaponAngle+=dt*2.7;
+ o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
  o.x+=o.vx*dt*60;o.y+=o.vy*dt*60;
  if(o.x<o.r||o.x>W-o.r)o.vx*=-1;
@@ -345,10 +345,10 @@ function checkOrbitWeaponHits(){
   const type=skins[attacker.skin].weapon;
   if(["sun","bow","staff","shield"].includes(type))continue;
   const target=attacker===player?enemy:player;
-  const radius=attacker.r+21;
+  const radius=attacker.r+24;
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
   const wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;
-  if(Math.hypot(wx-target.x,wy-target.y)<target.r+5){
+  if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
    hitOrb(target,attacker,skins[attacker.skin].weaponInfo.damage,"orbit");
   }
  }
