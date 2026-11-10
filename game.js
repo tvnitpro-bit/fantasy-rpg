@@ -103,8 +103,8 @@ function resetFight(){
  playerHP=100; enemyHP=100; playing=true; ended=false;
  enemySkin=Math.floor(Math.random()*100);
  if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
- player=makeOrb(150,350,equipped,0);
- enemy=makeOrb(550,350,enemySkin,1);
+ player=makeOrb(140,H/2,equipped,0);
+ enemy=makeOrb(W-140,H/2,enemySkin,1);
  projectiles=[]; particles=[];
  updateUI();
  $("log").innerHTML="";
@@ -266,10 +266,13 @@ function drawProjectile(p){
 function moveOrb(o,dt){
  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
- o.x+=o.vx*dt*60;o.y+=o.vy*dt*60;
- if(o.x<o.r||o.x>W-o.r)o.vx*=-1;
- if(o.y<o.r||o.y>H-o.r)o.vy*=-1;
- o.x=Math.max(o.r,Math.min(W-o.r,o.x));o.y=Math.max(o.r,Math.min(H-o.r,o.y));
+ // Toc do di chuyen x2, gioi han va cham theo kich thuoc san de cau khong the bay ra ngoai.
+ o.x+=o.vx*dt*120;o.y+=o.vy*dt*120;
+ const minX=o.r+2,maxX=W-o.r-2,minY=o.r+2,maxY=H-o.r-2;
+ if(o.x<minX){o.x=minX;o.vx=Math.abs(o.vx);}
+ if(o.x>maxX){o.x=maxX;o.vx=-Math.abs(o.vx);}
+ if(o.y<minY){o.y=minY;o.vy=Math.abs(o.vy);}
+ if(o.y>maxY){o.y=maxY;o.vy=-Math.abs(o.vy);}
  const speed=Math.hypot(o.vx,o.vy);
  if(speed>4.5){o.vx=o.vx/speed*4.5;o.vy=o.vy/speed*4.5;}
  if(speed<1.2){o.vx+=o.side?-.2:.2;o.vy+=(Math.random()-.5)*.3;}
@@ -287,19 +290,21 @@ function separateOrbs(){
 }
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
- let cooldown=type==="sun"?.95:type==="bow"?1.45:type==="staff"?1.8:99;
- if(o.weaponCooldown>0||cooldown>90)return;
+ // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
+ if(type!=="bow"&&type!=="staff")return;
+ let cooldown=type==="bow"?1.45:1.8;
+ if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
  projectiles.push({
   x:o.x+dx/d*(o.r+8),y:o.y+dy/d*(o.r+8),
-  vx:dx/d*(type==="sun"?8.5:type==="bow"?7.5:5.2),
-  vy:dy/d*(type==="sun"?8.5:type==="bow"?7.5:5.2),
-  r:type==="sun"?7:5,life:2.1,owner:o,
-  type:type==="sun"?"sunbeam":type==="bow"?"arrow":"magic",
+  vx:dx/d*(type==="bow"?7.5:5.2),
+  vy:dy/d*(type==="bow"?7.5:5.2),
+  r:5,life:2.1,owner:o,
+  type:type==="bow"?"arrow":"magic",
   damage:s.weaponInfo.damage,color:s.weaponInfo.color
  });
- addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="sun"?"tia sáng":type==="bow"?"mũi tên":"đốm phép")+"!");
+ addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="bow"?"mũi tên":"đạn phép từ trượng")+"!");
 }
 function shieldBlocks(target,attacker){
  if(target.skin!==25||target.shieldCooldown>0)return false;
