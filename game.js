@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:30,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
+  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:38,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
