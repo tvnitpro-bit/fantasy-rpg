@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:22.5,skin,ability:abilityId,
+  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:18,skin,ability:abilityId,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -365,7 +365,7 @@ function drawOrbHP(o){
  ctx.restore();
 }
 function drawShield(o,faceAngle){
- ctx.save();ctx.translate(o.x,o.y);ctx.rotate(faceAngle);ctx.scale(2,2);
+ ctx.save();ctx.translate(o.x,o.y);ctx.rotate(faceAngle);ctx.scale(2.5,2.5);
  // Small flat shield to the incoming side
  ctx.translate(o.r+8,0);
  ctx.fillStyle="#b9c8de";ctx.strokeStyle="#f3f6ff";ctx.lineWidth=2;
@@ -434,10 +434,10 @@ function moveOrb(o,dt,target){
    o.vy=o.vy*.94+desiredY*.06;
   }
   const speedBonus=o.ability===13?1.1:1;
-  o.x+=o.vx*dt*66.66*speedBonus;o.y+=o.vy*dt*33.33*speedBonus;
+  o.x+=o.vx*dt*90*speedBonus;o.y+=o.vy*dt*90*speedBonus;
   clampOrbToArena(o);
   const speed=Math.hypot(o.vx,o.vy);
-  if(speed>1.25){o.vx=o.vx/speed*1.25;o.vy=o.vy/speed*1.25;}
+  if(speed>1.8){o.vx=o.vx/speed*1.8;o.vy=o.vy/speed*1.8;}
   if(speed<0.45){o.vx+=o.side?-.08:.08;o.vy+=(Math.random()-.5)*.08;}
  }
 function separateOrbs(){
@@ -446,8 +446,8 @@ function separateOrbs(){
   const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
   player.x-=nx*overlap;player.y-=ny*overlap;
   enemy.x+=nx*overlap;enemy.y+=ny*overlap;
-  player.vx=-nx*1.1;player.vy=-ny*1.1;
-  enemy.vx=nx*1.1;enemy.vy=ny*1.1;
+  player.vx=-nx*2.2;player.vy=-ny*2.2;
+  enemy.vx=nx*2.2;enemy.vy=ny*2.2;
   // Important: orb-to-orb collision is only a physical bounce, never HP damage.
  }
  // Va cham giua hai qua cau co the day toa do; kep lai ca hai ngay sau do.
