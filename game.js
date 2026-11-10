@@ -305,7 +305,7 @@ function drawOrb(o){
  if(o.skin===101){ctx.strokeStyle="#fff09a";ctx.lineWidth=3;for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*34,Math.sin(a)*34);ctx.lineTo(Math.cos(a)*46,Math.sin(a)*46);ctx.stroke();}}
  if(o.skin===102){polygon([[-23,-19],[-27,-42],[-8,-29]],"#9b572e","#ffe0a6");polygon([[8,-29],[27,-42],[23,-19]],"#9b572e","#ffe0a6");ctx.fillStyle="#fff0cf";ctx.beginPath();ctx.ellipse(0,12,13,10,0,0,Math.PI*2);ctx.fill();}
  if(o.skin===103){ctx.strokeStyle="#d7fff8";ctx.lineWidth=4;for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*31,Math.sin(a)*31);ctx.lineTo(Math.cos(a)*40,Math.sin(a)*40);ctx.stroke();}}
- if(o.skin===104){ctx.strokeStyle="#ff527a";ctx.lineWidth=3;ctx.shadowBlur=16;ctx.shadowColor="#ff315e";ctx.beginPath();ctx.arc(0,0,39,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
+ if(o.skin===104){ctx.strokeStyle="#8cff72";ctx.lineWidth=3;ctx.shadowBlur=16;ctx.shadowColor="#39ff4e";ctx.beginPath();ctx.arc(0,0,39,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
  if(o.skin===66){
   polygon([[-10,-25],[0,-49],[12,-25]],"#0a79b2","#b8f1ff");
   polygon([[-25,1],[-43,-10],[-34,13]],"#178fc5","#b8f1ff");
@@ -344,10 +344,22 @@ function drawOrb(o){
  if(o.skin===25){
   ctx.save();ctx.translate(r+5,0);polygon([[-5,-14],[10,-10],[11,5],[2,17],[-8,5]],"#b9c8de","#ffffff");ctx.restore();
  }
+ // Vampire cape stays behind its round body.
+ if(o.skin===106){ctx.save();polygon([[-18,-r+3],[-36,-r-13],[-31,22],[0,14],[31,22],[36,-r-13],[18,-r+3]],"#4c1026","#d95772");ctx.restore();}
  // Body
  ctx.shadowBlur=18;ctx.shadowColor=s.color;ctx.fillStyle=s.color;
  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
  ctx.shadowBlur=0;ctx.strokeStyle="#ffffffaa";ctx.lineWidth=2.5;ctx.stroke();
+ // The 30 new orbs each receive a distinct emblem and surface pattern.
+ if(o.skin>=116){const k=o.skin-116;ctx.save();ctx.lineWidth=3;ctx.strokeStyle="#ffffffcc";ctx.fillStyle="#ffffffbb";ctx.shadowBlur=7;ctx.shadowColor=s.color;
+  if([0,7,20,23,24].includes(k)){ctx.beginPath();ctx.arc(0,0,r-10,-2.35,2.35);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r-17,.7,2.5);ctx.stroke();}
+  else if([1,8,25].includes(k)){for(let n=0;n<8;n++){const a=n*Math.PI/4;ctx.beginPath();ctx.moveTo(Math.cos(a)*8,Math.sin(a)*8);ctx.lineTo(Math.cos(a)*(r-4),Math.sin(a)*(r-4));ctx.stroke();}}
+  else if([2,3,13,21,22,26].includes(k)){ctx.beginPath();ctx.moveTo(-r+4,0);for(let n=0;n<7;n++)ctx.lineTo(-r+7+n*9,(n%2?-1:1)*(8+n%3*3));ctx.stroke();}
+  else if([4,12,17,18].includes(k)){ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.stroke();for(let n=0;n<8;n++){const a=n*Math.PI/4;ctx.beginPath();ctx.arc(Math.cos(a)*(r+5),Math.sin(a)*(r+5),3,0,Math.PI*2);ctx.fill();}}
+  else if([5,11,15,27].includes(k)){ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.stroke();for(let n=0;n<4;n++){ctx.beginPath();ctx.moveTo(-r+8,-15+n*10);ctx.lineTo(r-8,15-n*10);ctx.stroke();}}
+  else {for(let n=0;n<6;n++){const a=n*Math.PI/3;ctx.beginPath();ctx.arc(Math.cos(a)*19,Math.sin(a)*19,5,0,Math.PI*2);ctx.stroke();}}
+  ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText(s.glyph||"✦",0,-r-7);ctx.restore();}
+ if(o.skin===104){ctx.save();ctx.fillStyle="#d6ffd0";ctx.shadowBlur=10;ctx.shadowColor="#39ff4e";ctx.font="bold 10px monospace";ctx.textAlign="center";["01","10","11","0A","FF"].forEach((v,i)=>ctx.fillText(v,-18+(i%3)*18,-17+Math.floor(i/3)*15));ctx.restore();}
  // Simple face kept intentionally minimal
  ctx.fillStyle="#17121a";ctx.beginPath();
  ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
@@ -495,7 +507,8 @@ function drawWeapon(type,x,y,angle,color){
 }
 function drawProjectile(p){
  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));ctx.scale(2,2);
- if(p.type==="poisonray"){
+ if(p.type==="hopebounce"){ctx.shadowBlur=22;ctx.shadowColor="#45ff4c";ctx.fillStyle="#5dff4e";ctx.fillRect(-18,-4,36,8);ctx.fillStyle="#e5ffe0";ctx.fillRect(-15,-1,30,2);}
+ else if(p.type==="poisonray"){
   ctx.shadowBlur=24;ctx.shadowColor="#65ff42";ctx.fillStyle="#7dff48";
   ctx.fillRect(-18,-4,36,8);ctx.fillStyle="#e5ffd1";ctx.fillRect(-15,-1,30,2);
  }else if(p.type==="it"){ctx.shadowBlur=22;ctx.shadowColor="#ff315e";ctx.fillStyle="#ff466d";ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffb5c5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.stroke();}
@@ -686,7 +699,7 @@ function pointSegmentDistance(px,py,x1,y1,x2,y2){
 }
 function getWeaponSegment(o){
  const type=skins[o.skin].weapon;
- if(["sun","shield","sunbeam","yellowwater","bluewater","it","fangs","poisonray","web",""].includes(type))return null;
+ if(o.basicNPC||["bow","gun","staff","sun","sunbeam","shield","yellowwater","bluewater","it","fangs","poisonray","web","hopebolt","firebolt","icebolt","lightning","windshot","shadowbolt","waterbolt","arcanebolt","petalshot","ghostshot","sandshot","lightshot","poisonmist","prismshot","meteor",""].includes(type))return null;
  const a=o.weaponAngle;
  return {
   x1:o.x+Math.cos(a)*(o.r+4),
@@ -712,7 +725,7 @@ function segmentSegmentDistance(a,b){
  );
 }
 function checkWeaponClashes(){
- if(!player||!enemy)return;
+ if(!player||!enemy||enemy.basicNPC)return;
  if((player.weaponClashCooldown||0)>0||(enemy.weaponClashCooldown||0)>0)return;
  const a=getWeaponSegment(player),b=getWeaponSegment(enemy);
  if(!a||!b)return;
@@ -738,7 +751,7 @@ function weaponBlocksProjectile(defender,p){
   return Math.hypot(p.x-sx,p.y-sy)<p.r+25;
  }
  // These skins use a beam/orb effect rather than a visible hand-held weapon.
- if(["sun","sunbeam","yellowwater","bluewater","it"].includes(type))return false;
+ if(["bow","gun","staff","sun","sunbeam","yellowwater","bluewater","it","poisonray","hopebolt","firebolt","icebolt","lightning","windshot","shadowbolt","waterbolt","arcanebolt","petalshot","ghostshot","sandshot","lightshot","poisonmist","prismshot","meteor"].includes(type))return false;
  // Use the same active segment that collides with the opponent's weapon.
  const segment=getWeaponSegment(defender);
  if(!segment)return false;
@@ -747,6 +760,7 @@ function weaponBlocksProjectile(defender,p){
 function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
   const p=projectiles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;
+  if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
   const target=p.owner===player?enemy:player;
   // The defender's rotating weapon or shield can intercept an incoming projectile.
   if(weaponBlocksProjectile(target,p)){
