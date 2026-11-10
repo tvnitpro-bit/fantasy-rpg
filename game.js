@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -2.6:2.6,vy:(Math.random()-.5)*3,r:30,skin,ability:abilityId,
+  x,y,vx:side? -2.6:2.6,vy:(Math.random()-.5)*3,r:45,skin,ability:abilityId,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -427,7 +427,7 @@ function moveOrb(o,dt){
  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
  // Toc do x2, va dap vao tuong theo ban kinh that cua qua cau.
  const speedBonus=o.ability===13?1.25:1;
- o.x+=o.vx*dt*120*speedBonus;o.y+=o.vy*dt*120*speedBonus;
+ o.x+=o.vx*dt*240*speedBonus;o.y+=o.vy*dt*240*speedBonus;
  clampOrbToArena(o);
  const speed=Math.hypot(o.vx,o.vy);
  if(speed>4.5){o.vx=o.vx/speed*4.5;o.vy=o.vy/speed*4.5;}
