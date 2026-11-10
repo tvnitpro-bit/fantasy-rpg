@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -2.6:2.6,vy:(Math.random()-.5)*3,r:45,skin,ability:abilityId,
+  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:45,skin,ability:abilityId,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -421,26 +421,31 @@ function clampOrbToArena(o){
  o.x=Math.max(minX,Math.min(maxX,o.x));
  o.y=Math.max(minY,Math.min(maxY,o.y));
 }
-function moveOrb(o,dt){
- const ability=abilities[o.ability];
- o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
- o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
- // Toc do x2, va dap vao tuong theo ban kinh that cua qua cau.
- const speedBonus=o.ability===13?1.25:1;
- o.x+=o.vx*dt*240*speedBonus;o.y+=o.vy*dt*240*speedBonus;
- clampOrbToArena(o);
- const speed=Math.hypot(o.vx,o.vy);
- if(speed>4.5){o.vx=o.vx/speed*4.5;o.vy=o.vy/speed*4.5;}
- if(speed<1.2){o.vx+=o.side?-.2:.2;o.vy+=(Math.random()-.5)*.3;}
-}
+function moveOrb(o,dt,target){
+  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
+  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
+  // Di chuyen cham, huong ve doi thu mot cach mem.
+  if(target){
+   const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
+   const desiredX=dx/d*0.85,desiredY=dy/d*0.85;
+   o.vx=o.vx*.97+desiredX*.03;
+   o.vy=o.vy*.97+desiredY*.03;
+  }
+  const speedBonus=o.ability===13?1.1:1;
+  o.x+=o.vx*dt*100*speedBonus;o.y+=o.vy*dt*100*speedBonus;
+  clampOrbToArena(o);
+  const speed=Math.hypot(o.vx,o.vy);
+  if(speed>1.25){o.vx=o.vx/speed*1.25;o.vy=o.vy/speed*1.25;}
+  if(speed<0.45){o.vx+=o.side?-.08:.08;o.vy+=(Math.random()-.5)*.08;}
+ }
 function separateOrbs(){
  const dx=enemy.x-player.x,dy=enemy.y-player.y,d=Math.hypot(dx,dy)||1,min=player.r+enemy.r;
  if(d<min){
   const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
   player.x-=nx*overlap;player.y-=ny*overlap;
   enemy.x+=nx*overlap;enemy.y+=ny*overlap;
-  player.vx=-nx*2.8;player.vy=-ny*2.8;
-  enemy.vx=nx*2.8;enemy.vy=ny*2.8;
+  player.vx=-nx*0.9;player.vy=-ny*0.9;
+  enemy.vx=nx*0.9;enemy.vy=ny*0.9;
   // Important: orb-to-orb collision is only a physical bounce, never HP damage.
  }
  // Va cham giua hai qua cau co the day toa do; kep lai ca hai ngay sau do.
