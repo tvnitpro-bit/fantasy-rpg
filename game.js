@@ -174,6 +174,7 @@ function renderSkins(){
  $("skinTab").classList.toggle("active",collectionTab==="skin");
  $("abilityTab").classList.toggle("active",collectionTab==="ability");
  $("categories").style.display=collectionTab==="skin"?"flex":"none";
+ document.querySelector(".skin-layout").classList.toggle("abilities-only",collectionTab==="ability");
  const list=collectionTab==="skin" ? skins.filter(s=>filter==="Tất cả"||s.category===filter) : abilities;
  const pages=Math.max(1,Math.ceil(list.length/20));page=Math.min(page,pages-1);
  $("pageText").textContent=(page+1)+" / "+pages;
