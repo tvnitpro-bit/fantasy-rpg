@@ -123,8 +123,12 @@ button:active{transform:scale(.97)}
 
 <section class="skin-screen" id="skinScreen">
  <div class="skin-heading">
-  <h2>Skin & Năng lực – 100 Quả Cầu</h2>
-  <span>(100/100)</span>
+  <h2 id="skinHeading">Ngoại hình · 100 quả cầu</h2>
+  <span id="collectionCount">(100/100)</span>
+ </div>
+ <div class="collection-tabs">
+  <button id="skinTab" class="active" onclick="setCollectionTab('skin')">Ngoại hình</button>
+  <button id="abilityTab" onclick="setCollectionTab('ability')">Kỹ năng</button>
  </div>
  <div class="skin-layout">
   <div class="categories" id="categories"></div>
