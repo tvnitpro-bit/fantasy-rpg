@@ -98,7 +98,7 @@ const abilities = [
  {name:"Phong tốc",desc:"Tăng tốc độ di chuyển.",color:"#4fe8ca",icon:"〰"},
  {name:"Không gian",desc:"Tạo xung lực không gian quanh quả cầu.",color:"#ec78d9",icon:"✦"},
  {name:"Phản đòn",desc:"Có cơ hội phản lại một phần sát thương.",color:"#8186a9",icon:"↶"}
-];
+].map((a,i)=>({ ...a, maxHP:[90,105,95,110,100,125,90,105,95,145,115,85,100,95,100,120][i], damage:[15,10,17,12,18,9,19,13,11,8,10,22,14,12,16,13][i], cooldown:[1.1,1.3,1.0,1.4,1.2,1.5,1.0,1.25,1.4,1.6,1.5,1.0,1.3,0.9,1.2,1.25][i] })));
 const categories = ["✦ Tất cả (100)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt"];
 let selected=0, equipped=0, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
@@ -110,19 +110,20 @@ const ctx=canvas.getContext("2d");
 const W=700,H=480;
 const $=id=>document.getElementById(id);
 
-function makeOrb(x,y,skin,side){
+function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -2.6:2.6,vy:(Math.random()-.5)*3,r:30,skin,
+  x,y,vx:side? -2.6:2.6,vy:(Math.random()-.5)*3,r:30,skin,ability:abilityId,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
 }
 function resetFight(){
- playerHP=100; enemyHP=100; playing=true; ended=false;
+ player=makeOrb(140,H/2,equipped,0,equippedAbility);
  enemySkin=Math.floor(Math.random()*100);
  if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
- player=makeOrb(140,H/2,equipped,0);
- enemy=makeOrb(W-140,H/2,enemySkin,1);
+ const enemyAbility=enemySkin%abilities.length;
+ enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
+ playerHP=abilities[player.ability].maxHP;enemyHP=abilities[enemy.ability].maxHP;playing=true;ended=false;
  projectiles=[]; particles=[];
  updateUI();
  $("log").innerHTML="";
@@ -144,10 +145,12 @@ function updateUI(){
  $("playerIcon").textContent="●";$("playerIcon").style.color=p.color;
  $("enemyIcon").textContent="●";$("enemyIcon").style.color=e.color;
  $("playerName").textContent=p.name;$("enemyName").textContent=e.name;
- $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / 100";
- $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / 100";
- $("playerBar").style.width=Math.max(0,playerHP)+"%";
- $("enemyBar").style.width=Math.max(0,enemyHP)+"%";
+ const pMax=abilities[player?player.ability:equippedAbility].maxHP;
+ const eMax=abilities[enemy?enemy.ability:enemySkin%abilities.length].maxHP;
+ $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+abilities[player?player.ability:equippedAbility].damage;
+ $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+abilities[enemy?enemy.ability:enemySkin%abilities.length].damage;
+ $("playerBar").style.width=Math.max(0,playerHP/pMax*100)+"%";
+ $("enemyBar").style.width=Math.max(0,enemyHP/eMax*100)+"%";
  $("roundText").textContent="ROUND "+round+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
 }
 function toggleSkins(){$("skinScreen").classList.toggle("show");renderSkins();}
@@ -196,7 +199,8 @@ function showDetail(){
   $("detailName").textContent=a.name;
   $("powerTag").textContent="✦ Kỹ năng riêng";
   $("detailPower").textContent=a.desc;
-  $("detailWeapon").textContent="Kỹ năng được trang bị độc lập, không thay đổi ngoại hình hay vũ khí của quả cầu.";
+  $("detailWeapon").textContent="HP tối đa: "+a.maxHP+" · Sát thương: "+a.damage+" · Hồi chiêu: "+a.cooldown+" giây. Kỹ năng tách biệt hoàn toàn với skin và vũ khí.";
+  $("detailStats").textContent="Chỉ số kỹ năng: HP "+a.maxHP+" | DMG "+a.damage+" | CD "+a.cooldown+"s";
   $("equipMessage").textContent=selectedAbility===equippedAbility?"✓ Đang trang bị":"Có thể trang bị";
   return;
  }
@@ -207,6 +211,7 @@ function showDetail(){
  $("detailPower").textContent=s.description;
  const weaponLabel=s.id===25?"Kiếm + Khiên":s.weaponInfo.name;
  $("detailWeapon").textContent=weaponLabel+" — "+s.weaponInfo.desc+(s.trait?" Đặc điểm: "+s.trait+".":"");
+ $("detailStats").textContent="Ngoại hình thuần túy · Kỹ năng đang dùng: "+abilities[equippedAbility].name;
  $("equipMessage").textContent=selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
 }
 function changePage(n){
@@ -216,7 +221,7 @@ function changePage(n){
 function equipSkin(){
  if(collectionTab==="ability"){
   equippedAbility=selectedAbility;
-  if(player)player.ability=equippedAbility;
+  resetFight();
   showDetail();
   addLog("player","✦ Đã trang bị kỹ năng "+abilities[equippedAbility].name);
   return;
@@ -389,7 +394,7 @@ function fireIfNeeded(o,target){
   vy:dy/d*(type==="bow"?7.5:5.2),
   r:5,life:2.1,owner:o,
   type:type==="bow"?"arrow":"magic",
-  damage:s.weaponInfo.damage,color:s.weaponInfo.color
+  damage:Math.max(3,Math.round(s.weaponInfo.damage+abilities[o.ability].damage*.35)),color:s.weaponInfo.color
  });
  addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="bow"?"mũi tên":"đạn phép từ trượng")+"!");
 }
@@ -441,7 +446,7 @@ function checkOrbitWeaponHits(){
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
   const wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;
   if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
-   hitOrb(target,attacker,skins[attacker.skin].weaponInfo.damage,"orbit");
+   hitOrb(target,attacker,Math.round(skins[attacker.skin].weaponInfo.damage+abilities[attacker.ability].damage*.35),"orbit");
   }
  }
 }
