@@ -377,10 +377,11 @@ function drawOrb(o){
   else {for(let n=0;n<6;n++){const a=n*Math.PI/3;ctx.beginPath();ctx.arc(Math.cos(a)*19,Math.sin(a)*19,5,0,Math.PI*2);ctx.stroke();}}
   ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText(s.glyph||"✦",0,-r-7);ctx.restore();}
  if(o.skin===104){ctx.save();ctx.fillStyle="#d6ffd0";ctx.shadowBlur=10;ctx.shadowColor="#39ff4e";ctx.font="bold 10px monospace";ctx.textAlign="center";["01","10","11","0A","FF"].forEach((v,i)=>ctx.fillText(v,-18+(i%3)*18,-17+Math.floor(i/3)*15));ctx.restore();}
- // Simple face kept intentionally minimal
- ctx.fillStyle="#17121a";ctx.beginPath();
- ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle="#17121a";ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(0,3,7,.2,Math.PI-.2);ctx.stroke();
+ // Orb moi co bieu tuong rieng, khong dung mat hai cham + mieng cuoi mac dinh.
+ if(o.skin<116){
+  ctx.fillStyle="#17121a";ctx.beginPath();ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#17121a";ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(0,3,7,.2,Math.PI-.2);ctx.stroke();
+ }
  // 10 hinh dang moi cua ban preview.
  if(o.skin===105){
   ctx.save();ctx.strokeStyle="#a7ff58";ctx.lineWidth=3;ctx.shadowBlur=9;ctx.shadowColor="#72ff38";
@@ -649,7 +650,7 @@ function hitOrb(target,attacker,damage,type){
  if(target.ability===24)damage=Math.max(1,Math.round(damage*.82));
  if(target.ability===25&&target.spiritCooldown<=0&&Math.random()<.18){target.spiritCooldown=3;target.flash=.5;burst(target.x,target.y,"#d9fff7",12);addLog(isPlayerTarget?"player":"enemy","✧ Linh hồn né đòn!");return;}
  if(isPlayerTarget)setHP(target,playerHP-damage);else setHP(target,getHP(target)-damage);
- if(type==="orbit"&&["dagger","sword","water"].includes(skins[attacker.skin].weapon))attacker.weaponSpin=-(attacker.weaponSpin||1);
+ if(type==="orbit"&&!["bow","gun","staff","sun","sunbeam","shield","yellowwater","bluewater","it","poisonray","hopebolt","firebolt","icebolt","lightning","windshot","shadowbolt","waterbolt","arcanebolt","petalshot","ghostshot","sandshot","lightshot","poisonmist","prismshot","meteor","fangs","web"].includes(skins[attacker.skin].weapon))attacker.weaponSpin=-(attacker.weaponSpin||1);
  if(attacker.ability===0||attacker.ability===17){
   setHP(attacker,getHP(attacker)+damage*.25);
   addLog(attacker===player?"player":"enemy","♥ Hút máu hồi HP!");
@@ -700,7 +701,7 @@ function updateVampireBites(dt){
   if(attacker.biteCooldown>0)continue;
   const dx=attacker.x-target.x,dy=attacker.y-target.y,d=Math.hypot(dx,dy)||1;
   if(d<=attacker.r+target.r+16){
-   attacker.biteTarget=target;attacker.biteTimer=5;attacker.biteTick=1;
+   attacker.biteTarget=target;attacker.biteTimer=5;attacker.biteTick=0;
    attacker.biteDirX=dx/d;attacker.biteDirY=dy/d;
    burst(target.x,target.y,"#ff5278",12);
    addLog(attacker===player?"player":"enemy","🧛 Bám dính 5 giây, hút 3 HP mỗi giây!");
