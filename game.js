@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:24,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
+  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:30,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -521,10 +521,43 @@ function hitOrb(target,attacker,damage,type){
   updateUI();
  }
 }
+function pointSegmentDistance(px,py,x1,y1,x2,y2){
+ const dx=x2-x1,dy=y2-y1,len2=dx*dx+dy*dy;
+ const t=len2?Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/len2)):0;
+ const cx=x1+t*dx,cy=y1+t*dy;
+ return Math.hypot(px-cx,py-cy);
+}
+function weaponBlocksProjectile(defender,p){
+ const type=skins[defender.skin].weapon;
+ // Shield type: check the physical shield face placed toward the attacker.
+ if(type==="shield"||defender.skin===25){
+  const attacker=p.owner;
+  const angle=Math.atan2(attacker.y-defender.y,attacker.x-defender.x);
+  const sx=defender.x+Math.cos(angle)*(defender.r+8);
+  const sy=defender.y+Math.sin(angle)*(defender.r+8);
+  return Math.hypot(p.x-sx,p.y-sy)<p.r+25;
+ }
+ // These skins use a beam/orb effect rather than a visible hand-held weapon.
+ if(["sun","sunbeam","yellowwater","bluewater","it"].includes(type))return false;
+ // Treat the rotating weapon as a long guard segment extending from the orb.
+ const a=defender.weaponAngle;
+ const start=defender.r+2,end=defender.r+21+46;
+ const x1=defender.x+Math.cos(a)*start;
+ const y1=defender.y+Math.sin(a)*start;
+ const x2=defender.x+Math.cos(a)*end;
+ const y2=defender.y+Math.sin(a)*end;
+ return pointSegmentDistance(p.x,p.y,x1,y1,x2,y2)<p.r+9;
+}
 function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
   const p=projectiles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;
   const target=p.owner===player?enemy:player;
+  // The defender's rotating weapon or shield can intercept an incoming projectile.
+  if(weaponBlocksProjectile(target,p)){
+   burst(p.x,p.y,"#dff6ff",7);
+   addLog(target===player?"player":"enemy",(target===player?"Bạn":"Địch")+" dùng vũ khí chặn đạn!");
+   projectiles.splice(i,1);continue;
+  }
   if(Math.hypot(p.x-target.x,p.y-target.y)<target.r+p.r){
    hitOrb(target,p.owner,p.damage,p.type);projectiles.splice(i,1);continue;
   }
