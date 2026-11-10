@@ -713,9 +713,7 @@ function checkWeaponClashes(){
  const a=getWeaponSegment(player),b=getWeaponSegment(enemy);
  if(!a||!b)return;
  if(segmentSegmentDistance(a,b)<13){
-  // Weapons stop one another and both reverse their rotation.
-  player.weaponSpin=-(player.weaponSpin||1);
-  enemy.weaponSpin=-(enemy.weaponSpin||1);
+  // Weapon clash is visual only; spin reverses only after a damaging hit.
   player.weaponClashCooldown=.42;
   enemy.weaponClashCooldown=.42;
   player.weaponAngle+=.12*(player.weaponSpin||1);
