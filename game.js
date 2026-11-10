@@ -104,7 +104,8 @@ const previewOrbs = [
  {id:111,name:"San Hô",color:"#f18ab8",weapon:"water",weaponName:"Lưỡi san hô",weaponColor:"#ffd0e5",damage:13,maxHP:120,category:"Đặc biệt",trait:"Nhánh san hô hồng",desc:"Các nhánh san hô mềm mại và hạt ngọc nhỏ bao quanh quả cầu."},
  {id:112,name:"Lôi Điện",color:"#f4d94e",weapon:"staff",weaponName:"Trượng sấm",weaponColor:"#fff27c",damage:20,maxHP:105,category:"Điện",trait:"Tia sét vàng chạy quanh thân",desc:"Quả cầu vàng với đường sét zigzag và các tia điện nhỏ."},
  {id:113,name:"Cơ Giới",color:"#9caebd",weapon:"shield",weaponName:"Khiên cơ khí",weaponColor:"#d9edf7",damage:12,maxHP:142,category:"Phòng thủ",trait:"Vòng kim loại và đinh tán",desc:"Lớp vỏ kim loại, vòng bánh răng và các đinh tán máy móc."},
- {id:114,name:"Linh Hồn",color:"#c2f2ed",weapon:"staff",weaponName:"Trượng linh hồn",weaponColor:"#e3fff9",damage:14,maxHP:116,category:"Khống chế",trait:"Dải linh khí lơ lửng",desc:"Quả cầu xanh ngọc nhạt với quầng sáng và các dải linh khí bay quanh."}
+ {id:114,name:"Linh Hồn",color:"#c2f2ed",weapon:"staff",weaponName:"Trượng linh hồn",weaponColor:"#e3fff9",damage:14,maxHP:116,category:"Khống chế",trait:"Dải linh khí lơ lửng",desc:"Quả cầu xanh ngọc nhạt với quầng sáng và các dải linh khí bay quanh."},
+ {id:115,name:"Nhện Giăng Tơ",color:"#83b85c",weapon:"web",weaponName:"Tơ nhện",weaponColor:"#d9f5b4",damage:5,maxHP:128,category:"Khống chế",trait:"Bốn cặp chân nhện và bẫy tơ",desc:"Cứ mỗi 5 giây bắn một tấm tơ xuống sàn đấu. Quả cầu đi qua sẽ mất 5 HP và bị giữ lại trong chốc lát. Mỗi tấm tơ bẫy được 2 lần rồi biến mất."}
 ];
 previewOrbs.forEach(s=>skins.push({
  id:s.id,name:s.name,color:s.color,category:s.category,weapon:s.weapon,
@@ -131,10 +132,10 @@ const abilities = [
  {name:"Không gian",desc:"Tạo xung lực không gian quanh quả cầu.",color:"#ec78d9",icon:"✦"},
  {name:"Phản đòn",desc:"Có cơ hội phản lại một phần sát thương.",color:"#8186a9",icon:"↶"}
 ].map((a,i)=>({ ...a, maxHP:[90,105,95,110,100,125,90,105,95,145,115,85,100,95,100,120][i], damage:[15,10,17,12,18,9,19,13,11,8,10,22,14,12,16,13][i], cooldown:[1.1,1.3,1.0,1.4,1.2,1.5,1.0,1.25,1.4,1.6,1.5,1.0,1.3,0.9,1.2,1.25][i] }));
-const categories = ["✦ Tất cả (115)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
+const categories = ["✦ Tất cả (116)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
 let selected=0, equipped=0, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
-let player=null, enemy=null, projectiles=[], particles=[], lastFrame=0;
+let player=null, enemy=null, projectiles=[], particles=[], spiderWebs=[], lastFrame=0;
 let logTimer=0;
 
 const canvas=document.getElementById("arena");
@@ -144,7 +145,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:38,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
+  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:38,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,webShotTimer:5,webbedTimer:0,
   weaponAngle:Math.random()*Math.PI*2,weaponSpin:Math.random()<.5?-1:1,weaponClashCooldown:0,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -156,7 +157,7 @@ function resetFight(){
  const enemyAbility=enemySkin%abilities.length;
  enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
  playerHP=skins[player.skin].maxHP;enemyHP=skins[enemy.skin].maxHP;playing=true;ended=false;
- projectiles=[]; particles=[];
+ projectiles=[]; particles=[]; spiderWebs=[];
  updateUI();
  $("log").innerHTML="";
  addLog("system","⚔ ROUND "+round+" BẮT ĐẦU!");
@@ -204,7 +205,7 @@ function setCollectionTab(tab){
 }
 function skinMark(id){
  const marks=["♛","✳","ϟ","❄","♨","❧","☾","≈","◷","⬟","✧","♆","☣","〰","✦","◖","●","⚙","☼","☢","♜","❄","♨","❀","◌","▰","✦","⚔","✧","➶","≈","❀","≋","〰","ϟ","♨","☄","◇","◆","◉","◉","◉","▰","⚒","☾","☽","☼","✧","✦","☄","⚙","◎","⌁","▱","◌","☣","✳","☘","❀","✿","☘","♧","♧","♧","✣","〰","◢","◒","◆","●","●","●","●","◈","◉","◉","◌","≈","✧","♜","ϟ","❄","♨","〰","⬟","◌","✥","◈","◐","☘","✹","∞","◉","↶","〰","✧","◎","✹","☼","✦"];
- return ({100:"🔫",101:"☼",102:"🐕",103:"🐡",104:"🎈",105:"☣",106:"🧛",107:"❄",108:"🌋",109:"☄",110:"☾",111:"🪸",112:"ϟ",113:"⚙",114:"✧"})[id]||marks[id]||"●";
+ return ({100:"🔫",101:"☼",102:"🐕",103:"🐡",104:"🎈",105:"☣",106:"🧛",107:"❄",108:"🌋",109:"☄",110:"☾",111:"🪸",112:"ϟ",113:"⚙",114:"✧",115:"🕷️"})[id]||marks[id]||"●";
 }
 function renderSkins(){
  $("skinTab").classList.toggle("active",collectionTab==="skin");
@@ -379,6 +380,19 @@ function drawOrb(o){
   ctx.fillStyle="#f2fffc";for(const p of [[-24,-22],[23,-17],[22,21]]){ctx.beginPath();ctx.arc(p[0],p[1],3,0,Math.PI*2);ctx.fill();}ctx.restore();
  }
 
+ // Spider orb: eight short jointed legs around a round body.
+ if(o.skin===115){
+  ctx.save();ctx.strokeStyle="#34452b";ctx.lineWidth=4;ctx.lineCap="round";ctx.lineJoin="round";
+  for(const side of [-1,1])for(let k=0;k<4;k++){
+   const y=-19+k*12,rootX=side*24,midX=side*34,endX=side*43;
+   ctx.beginPath();ctx.moveTo(rootX,y);ctx.lineTo(midX,y+(k<2?-7:7));ctx.lineTo(endX,y+(k<2?-13:13));ctx.stroke();
+   ctx.strokeStyle="#c7e8a4";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(rootX,y);ctx.lineTo(midX,y+(k<2?-7:7));ctx.stroke();
+   ctx.strokeStyle="#34452b";ctx.lineWidth=4;
+  }
+  ctx.fillStyle="#f6ffd8";ctx.beginPath();ctx.arc(-8,-5,3,0,Math.PI*2);ctx.arc(8,-5,3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
+
  // Dau hieu hinh hoc don gian theo chu de, khong anime hoa.
  if(o.skin===1){ctx.strokeStyle="#f4f4f4";ctx.lineWidth=2;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(0,0,12+k*7,-.9,.9);ctx.stroke();}}
  if([2,34,80].includes(o.skin)){ctx.strokeStyle="#fff27a";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-22,18);ctx.lineTo(-5,2);ctx.lineTo(2,14);ctx.lineTo(20,-16);ctx.stroke();}
@@ -401,7 +415,7 @@ function drawOrb(o){
 
  // Weapon attached to orb. Weapons are visual objects; only orb-body contact causes damage.
  if(s.weapon==="shield"||o.skin===25) drawShield(o,Math.atan2((o.side?player.y:enemy.y)-o.y,(o.side?player.x:enemy.x)-o.x));
- if(!["sun","shield","sunbeam","yellowwater","bluewater","it","poisonray","fangs"].includes(s.weapon)){
+ if(!["sun","shield","sunbeam","yellowwater","bluewater","it","poisonray","fangs","web"].includes(s.weapon)){
   const a=o.weaponAngle,rad=r+21,wx=x+Math.cos(a)*rad,wy=y+Math.sin(a)*rad;
   drawWeapon(s.weapon,wx,wy,a,s.weaponInfo.color);
  }
@@ -505,6 +519,10 @@ function clampOrbToArena(o){
 function moveOrb(o,dt){
   o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7)*(o.weaponSpin||1);
   o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.weaponClashCooldown=Math.max(0,(o.weaponClashCooldown||0)-dt);o.flash=Math.max(0,o.flash-dt*3);
+  if((o.webbedTimer||0)>0){
+   o.webbedTimer=Math.max(0,o.webbedTimer-dt);
+   return;
+  }
   // Huong di chuyen doi ngau nhien theo tung khoang thoi gian; khong hut ve doi thu.
   o.turnTimer-=dt;
   if(o.turnTimer<=0){
@@ -638,7 +656,7 @@ function pointSegmentDistance(px,py,x1,y1,x2,y2){
 }
 function getWeaponSegment(o){
  const type=skins[o.skin].weapon;
- if(["sun","shield","sunbeam","yellowwater","bluewater","it","fangs","poisonray",""].includes(type))return null;
+ if(["sun","shield","sunbeam","yellowwater","bluewater","it","fangs","poisonray","web",""].includes(type))return null;
  const a=o.weaponAngle;
  return {
   x1:o.x+Math.cos(a)*(o.r+4),
@@ -718,7 +736,7 @@ function checkOrbitWeaponHits(){
  for(const attacker of [player,enemy]){
   if(!attacker||attacker.hitCooldown>0)continue;
   const type=skins[attacker.skin].weapon;
-  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield","fangs","poisonray"].includes(type))continue;
+  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield","fangs","poisonray","web"].includes(type))continue;
   const target=attacker===player?enemy:player;
   const radius=attacker.r+24;
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
@@ -726,6 +744,69 @@ function checkOrbitWeaponHits(){
   if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
    hitOrb(target,attacker,Math.round(skins[attacker.skin].baseDamage+abilities[attacker.ability].damage*.2),"orbit");
   }
+ }
+}
+function updateSpiderTraps(dt){
+ // Each active spider lays one web every five seconds near the opponent's path.
+ for(const spider of [player,enemy]){
+  if(!spider||spider.skin!==115)continue;
+  spider.webShotTimer=(spider.webShotTimer??5)-dt;
+  if(spider.webShotTimer<=0){
+   const target=spider===player?enemy:player;
+   const angle=Math.random()*Math.PI*2,dist=75+Math.random()*95;
+   const x=Math.max(42,Math.min(W-42,target.x+Math.cos(angle)*dist));
+   const y=Math.max(42,Math.min(H-42,target.y+Math.sin(angle)*dist));
+   spiderWebs.push({x,y,r:27,hits:0,maxHits:2,lockout:0,life:15,owner:spider});
+   if(spiderWebs.length>8)spiderWebs.shift();
+   spider.webShotTimer=5;
+   burst(x,y,"#d9f5b4",6);
+   addLog(spider===player?"player":"enemy","🕸 Nhện giăng một tấm tơ trên sàn đấu!");
+  }
+ }
+ for(let i=spiderWebs.length-1;i>=0;i--){
+  const web=spiderWebs[i];
+  web.life-=dt;web.lockout=Math.max(0,web.lockout-dt);
+  if(web.life<=0||web.hits>=web.maxHits){spiderWebs.splice(i,1);continue;}
+  if(web.lockout>0)continue;
+  for(const orb of [player,enemy]){
+   if(!orb||orb===web.owner||(orb.webbedTimer||0)>0)continue;
+   if(Math.hypot(orb.x-web.x,orb.y-web.y)<=orb.r+web.r*.55){
+    web.hits++;web.lockout=.9;orb.webbedTimer=.7;
+    if(orb===player)playerHP=Math.max(0,playerHP-5);else enemyHP=Math.max(0,enemyHP-5);
+    burst(web.x,web.y,"#d9f5b4",10);
+    addLog(orb===player?"player":"enemy","🕸 Dính tơ nhện! Mất 5 HP và bị giữ chân.");
+    if(web.hits>=web.maxHits){
+     addLog("system","Tấm tơ nhện đã đứt sau 2 lần bẫy!");
+     spiderWebs.splice(i,1);
+    }
+    updateUI();
+    if(playerHP<=0||enemyHP<=0){
+     ended=true;playing=false;
+     addLog("system",enemyHP<=0?"🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":"💥 BẠN ĐÃ THUA ROUND "+round+"!");
+     updateUI();
+    }
+    break;
+   }
+  }
+ }
+}
+function drawSpiderWebs(){
+ for(const web of spiderWebs){
+  ctx.save();
+  ctx.globalAlpha=Math.min(1,web.life/2)*.9;
+  ctx.strokeStyle="#d9f5b4";ctx.lineWidth=2;
+  ctx.shadowBlur=9;ctx.shadowColor="#b9ec85";
+  for(let k=0;k<8;k++){
+   const a=k*Math.PI/4;
+   ctx.beginPath();ctx.moveTo(web.x,web.y);
+   ctx.lineTo(web.x+Math.cos(a)*web.r,web.y+Math.sin(a)*web.r);ctx.stroke();
+  }
+  for(const radius of [9,18,27]){
+   ctx.beginPath();ctx.arc(web.x,web.y,radius,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.shadowBlur=0;ctx.fillStyle="#f2ffd9";ctx.font="bold 10px Arial";ctx.textAlign="center";
+  ctx.fillText((web.maxHits-web.hits)+" lần",web.x,web.y+web.r+13);
+  ctx.restore();
  }
 }
 function updateParticles(dt){
@@ -746,14 +827,14 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();updateVampireBites(dt);checkWeaponClashes();
+  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();updateVampireBites(dt);updateSpiderTraps(dt);checkWeaponClashes();
   // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
   clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
   updateProjectiles(dt);checkOrbitWeaponHits();
  }
  updateParticles(dt);
- projectiles.forEach(drawProjectile);drawParticles();
+ drawSpiderWebs();projectiles.forEach(drawProjectile);drawParticles();
  drawOrb(player);drawOrb(enemy);
  drawOrbHP(player);drawOrbHP(enemy);
  requestAnimationFrame(frame);
