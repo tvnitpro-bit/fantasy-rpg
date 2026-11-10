@@ -153,37 +153,53 @@ const abilities = [
 const categories = ["✦ Tất cả (146)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
 let selected=116, equipped=116, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
-let player=null, enemy=null, projectiles=[], particles=[], spiderWebs=[], lastFrame=0;
+let player=null,enemy=null,enemy2=null,enemy2HP=0,enemyMaxHP=100,enemy2MaxHP=100;
+let campaignMode=false,campaignStage=1;
+let projectiles=[],particles=[],spiderWebs=[],poisonClouds=[],poisonCloudTimer=0,lastFrame=0;
 let logTimer=0;
 
 const canvas=document.getElementById("arena");
 const ctx=canvas.getContext("2d");
 const W=700,H=480;
 const $=id=>document.getElementById(id);
+function activeOpponents(){return [enemy,enemy2].filter(o=>o&&getHP(o)>0);}
+function getHP(o){return o===player?playerHP:o===enemy?enemyHP:o===enemy2?enemy2HP:0;}
+function setHP(o,value){const max=o===player?skins[player.skin].maxHP:o===enemy?enemyMaxHP:enemy2MaxHP;const v=Math.max(0,Math.min(max,value));if(o===player)playerHP=v;else if(o===enemy)enemyHP=v;else if(o===enemy2)enemy2HP=v;return v;}
+function nearestTarget(o){if(o!==player)return player;const list=activeOpponents();return list.sort((a,b)=>Math.hypot(a.x-o.x,a.y-o.y)-Math.hypot(b.x-o.x,b.y-o.y))[0]||enemy;}
+function checkBattleEnd(){if(playerHP<=0||activeOpponents().length===0){ended=true;playing=false;addLog("system",playerHP<=0?"💥 Bạn đã thua "+(campaignMode?"ải "+campaignStage:"round "+round)+"!":campaignMode?"🏆 Hoàn thành ải "+campaignStage+"!":"🏆 Bạn chiến thắng ROUND "+round+"!");updateUI();}}
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
   x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:38,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,webShotTimer:5,webbedTimer:0,
   weaponAngle:Math.random()*Math.PI*2,weaponSpin:Math.random()<.5?-1:1,weaponClashCooldown:0,weaponCooldown:.5+Math.random()*.5,
-  hitCooldown:0,shieldCooldown:0,flash:0,side,poisonTimer:0,burnTimer:0,slowTimer:0,regenTimer:1,spiritCooldown:0
+  hitCooldown:0,shieldCooldown:0,flash:0,side,poisonTimer:0,burnTimer:0,slowTimer:0,regenTimer:1,spiritCooldown:0,basicNPC:false,contactCooldown:0,wallWebCooldown:0
  };
 }
-function resetFight(){
- player=makeOrb(140,H/2,equipped,0,equippedAbility);
- enemySkin=Math.floor(Math.random()*skins.length);
- if(enemySkin===equipped) enemySkin=(enemySkin+1)%skins.length;
- const enemyAbility=Math.floor(Math.random()*abilities.length);
- enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
- playerHP=skins[player.skin].maxHP;enemyHP=skins[enemy.skin].maxHP;playing=true;ended=false;
- projectiles=[]; particles=[]; spiderWebs=[];
- updateUI();
- $("log").innerHTML="";
- addLog("system","⚔ ROUND "+round+" BẮT ĐẦU!");
- addLog("system","Đối thủ ngẫu nhiên: "+skins[enemySkin].name);
+function createBasicNPC(x,y,label,hp,damage){
+ const npc=makeOrb(x,y,16,1,-1);npc.basicNPC=true;npc.npcLabel=label;npc.contactDamage=damage;npc.contactCooldown=.6;npc.vx=-1.2;npc.vy=(Math.random()-.5)*1.2;return npc;
 }
-function restart(){round=1;resetFight();}
+function resetFight(){
+ player=makeOrb(140,H/2,equipped,0,equippedAbility);enemy2=null;enemy2HP=0;enemy2MaxHP=0;
+ if(campaignMode){
+  enemySkin=16;const hp=42+campaignStage*6,damage=2+Math.floor(campaignStage*.35);
+  enemy=createBasicNPC(W-145,H/2,"NPC 1",hp,damage);enemyMaxHP=hp;enemyHP=hp;
+  if(campaignStage===10){enemy2=createBasicNPC(W-190,H*.24,"NPC 2",hp+8,damage);enemy2MaxHP=hp+8;enemy2HP=hp+8;}
+ }else{
+  enemySkin=Math.floor(Math.random()*skins.length);if(enemySkin===equipped)enemySkin=(enemySkin+1)%skins.length;
+  const enemyAbility=Math.floor(Math.random()*abilities.length);enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
+  enemyMaxHP=skins[enemySkin].maxHP;enemyHP=enemyMaxHP;
+ }
+ playerHP=skins[player.skin].maxHP;playing=true;ended=false;projectiles=[];particles=[];spiderWebs=[];poisonClouds=[];poisonCloudTimer=0;
+ updateUI();$("log").innerHTML="";
+ addLog("system",campaignMode?"🏆 ẢI "+campaignStage+"/10 BẮT ĐẦU!":"⚔ ROUND "+round+" BẮT ĐẦU!");
+ addLog("system",campaignMode?(campaignStage===10?"Hai NPC cơ bản xuất hiện!":"Đối thủ là NPC cơ bản."):"Đối thủ ngẫu nhiên: "+skins[enemySkin].name);
+}
+function startCampaign(){campaignMode=true;campaignStage=1;round=1;resetFight();}
+
+function restart(){if(campaignMode){campaignStage=1;round=1;}else round=1;resetFight();}
 function nextRound(){
  if(!ended){addLog("system","Trận đấu chưa kết thúc!");return;}
+ if(campaignMode){if(playerHP<=0){resetFight();return;}if(campaignStage>=10){addLog("system","🏆 BẠN ĐÃ HOÀN THÀNH CHIẾN DỊCH 10 ẢI!");campaignMode=false;updateUI();return;}campaignStage++;round=campaignStage;resetFight();return;}
  round++;resetFight();
 }
 function addLog(type,message){
@@ -192,17 +208,17 @@ function addLog(type,message){
  while(box.children.length>24)box.lastChild.remove();
 }
 function updateUI(){
- const p=skins[equipped],e=skins[enemySkin];
- $("playerIcon").textContent="●";$("playerIcon").style.color=p.color;
- $("enemyIcon").textContent="●";$("enemyIcon").style.color=e.color;
- $("playerName").textContent=p.name;$("enemyName").textContent=e.name;
- const pSkin=skins[player?player.skin:equipped],eSkin=skins[enemy?enemy.skin:enemySkin];
- const pMax=pSkin.maxHP,eMax=eSkin.maxHP;
- $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+pSkin.baseDamage;
- $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+eSkin.baseDamage;
- $("playerBar").style.width=Math.max(0,playerHP/pMax*100)+"%";
- $("enemyBar").style.width=Math.max(0,enemyHP/eMax*100)+"%";
- $("roundText").textContent="ROUND "+round+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
+ const p=skins[equipped],pSkin=skins[player?player.skin:equipped];
+ $("playerIcon").textContent="●";$("playerIcon").style.color=p.color;$("playerName").textContent=p.name;
+ $("enemyIcon").textContent="●";$("enemyIcon").style.color=campaignMode?"#aeb8c8":skins[enemySkin].color;
+ $("enemyName").textContent=campaignMode?"NPC cơ bản":skins[enemySkin].name;
+ const eMax=enemyMaxHP||skins[enemy?enemy.skin:enemySkin].maxHP;
+ $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pSkin.maxHP+" · DMG "+pSkin.baseDamage;
+ $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+(campaignMode?" · NPC":" · DMG "+skins[enemy.skin].baseDamage);
+ $("playerBar").style.width=Math.max(0,playerHP/pSkin.maxHP*100)+"%";$("enemyBar").style.width=Math.max(0,enemyHP/eMax*100)+"%";
+ const card=$("enemy2Card");if(card){card.style.display=enemy2?"block":"none";if(enemy2){$("enemy2HP").textContent="HP: "+Math.ceil(enemy2HP)+" / "+enemy2MaxHP;$("enemy2Bar").style.width=Math.max(0,enemy2HP/enemy2MaxHP*100)+"%";}}
+ const status=document.querySelector(".status");if(status)status.classList.toggle("double-enemy",!!enemy2);
+ $("roundText").textContent=(campaignMode?"ẢI "+campaignStage+"/10":"ROUND "+round)+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
 }
 function toggleSkins(){$("skinScreen").classList.toggle("show");renderSkins();}
 function renderCategories(){
@@ -299,6 +315,7 @@ function polygon(points,fill,stroke){
 }
 function drawOrb(o){
  const s=skins[o.skin],x=o.x,y=o.y,r=o.r;
+ if(o.basicNPC){ctx.save();ctx.shadowBlur=12;ctx.shadowColor="#b7c1d0";ctx.fillStyle="#aeb8c8";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle="#edf2fa";ctx.lineWidth=3;ctx.stroke();ctx.fillStyle="#303746";ctx.beginPath();ctx.arc(x-10,y-5,3,0,Math.PI*2);ctx.arc(x+10,y-5,3,0,Math.PI*2);ctx.fill();ctx.textAlign="center";ctx.font="bold 11px Arial";ctx.fillStyle="#fff";ctx.fillText(o.npcLabel||"NPC",x,y+r+18);ctx.restore();return;}
  ctx.save();ctx.translate(x,y);
  // Minimal identifying features only: shark fin, vampire fangs, warrior shield.
  if(o.skin===100){ctx.save();ctx.translate(27,7);ctx.rotate(-.25);ctx.fillStyle="#263b55";ctx.strokeStyle="#bdefff";ctx.lineWidth=2;ctx.fillRect(-2,-5,20,10);ctx.fillRect(9,3,6,10);ctx.fillStyle="#8fe7ff";ctx.fillRect(15,-3,8,5);ctx.restore();}
@@ -454,8 +471,8 @@ function drawOrb(o){
  ctx.fillText(o.side===0?"Bạn":"Địch",x,y+r+19);
 }
 function drawOrbHP(o){
- const current=o===player?playerHP:enemyHP;
- const max=skins[o.skin].maxHP;
+ const current=getHP(o);
+ const max=o===enemy?enemyMaxHP:o===enemy2?enemy2MaxHP:skins[o.skin].maxHP;
  const ratio=Math.max(0,Math.min(1,current/max));
  const barW=7,barH=54;
  const bx=o.side?o.x-o.r-17:o.x+o.r+10;
@@ -889,6 +906,7 @@ function init(){
 }
 window.restart=restart;
 window.nextRound=nextRound;
+window.startCampaign=startCampaign;
 window.toggleSkins=toggleSkins;
 window.setCollectionTab=setCollectionTab;
 window.changePage=changePage;
