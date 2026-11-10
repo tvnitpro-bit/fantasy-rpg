@@ -125,7 +125,7 @@ const $=id=>document.getElementById(id);
 function makeOrb(x,y,skin,side,abilityId){
  return {
   x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:38,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
-  weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
+  weaponAngle:Math.random()*Math.PI*2,weaponSpin:Math.random()<.5?-1:1,weaponClashCooldown:0,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
 }
@@ -433,8 +433,8 @@ function clampOrbToArena(o){
   o.y=Math.max(minY,Math.min(maxY,o.y));
 }
 function moveOrb(o,dt){
-  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
-  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
+  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7)*(o.weaponSpin||1);
+  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.weaponClashCooldown=Math.max(0,(o.weaponClashCooldown||0)-dt);o.flash=Math.max(0,o.flash-dt*3);
   // Huong di chuyen doi ngau nhien theo tung khoang thoi gian; khong hut ve doi thu.
   o.turnTimer-=dt;
   if(o.turnTimer<=0){
@@ -527,6 +527,51 @@ function pointSegmentDistance(px,py,x1,y1,x2,y2){
  const cx=x1+t*dx,cy=y1+t*dy;
  return Math.hypot(px-cx,py-cy);
 }
+function getWeaponSegment(o){
+ const type=skins[o.skin].weapon;
+ if(["sun","shield","sunbeam","yellowwater","bluewater","it",""].includes(type))return null;
+ const a=o.weaponAngle;
+ return {
+  x1:o.x+Math.cos(a)*(o.r+4),
+  y1:o.y+Math.sin(a)*(o.r+4),
+  x2:o.x+Math.cos(a)*(o.r+67),
+  y2:o.y+Math.sin(a)*(o.r+67)
+ };
+}
+function segmentSegmentDistance(a,b){
+ const cross=(x1,y1,x2,y2)=>(x1*y2-y1*x2);
+ const ax=a.x2-a.x1,ay=a.y2-a.y1,bx=b.x2-b.x1,by=b.y2-b.y1;
+ const den=cross(ax,ay,bx,by);
+ if(Math.abs(den)>1e-8){
+  const dx=b.x1-a.x1,dy=b.y1-a.y1;
+  const t=cross(dx,dy,bx,by)/den,u=cross(dx,dy,ax,ay)/den;
+  if(t>=0&&t<=1&&u>=0&&u<=1)return 0;
+ }
+ return Math.min(
+  pointSegmentDistance(a.x1,a.y1,b.x1,b.y1,b.x2,b.y2),
+  pointSegmentDistance(a.x2,a.y2,b.x1,b.y1,b.x2,b.y2),
+  pointSegmentDistance(b.x1,b.y1,a.x1,a.y1,a.x2,a.y2),
+  pointSegmentDistance(b.x2,b.y2,a.x1,a.y1,a.x2,a.y2)
+ );
+}
+function checkWeaponClashes(){
+ if(!player||!enemy)return;
+ if((player.weaponClashCooldown||0)>0||(enemy.weaponClashCooldown||0)>0)return;
+ const a=getWeaponSegment(player),b=getWeaponSegment(enemy);
+ if(!a||!b)return;
+ if(segmentSegmentDistance(a,b)<13){
+  // Weapons stop one another and both reverse their rotation.
+  player.weaponSpin=-(player.weaponSpin||1);
+  enemy.weaponSpin=-(enemy.weaponSpin||1);
+  player.weaponClashCooldown=.42;
+  enemy.weaponClashCooldown=.42;
+  player.weaponAngle+=.12*(player.weaponSpin||1);
+  enemy.weaponAngle+=.12*(enemy.weaponSpin||1);
+  const mx=(a.x2+b.x2)/2,my=(a.y2+b.y2)/2;
+  burst(mx,my,"#dcecff",8);
+  addLog("system","⚔ Hai vũ khí va chạm và bật ngược chiều quay!");
+ }
+}
 function weaponBlocksProjectile(defender,p){
  const type=skins[defender.skin].weapon;
  // Shield type: check the physical shield face placed toward the attacker.
@@ -539,14 +584,10 @@ function weaponBlocksProjectile(defender,p){
  }
  // These skins use a beam/orb effect rather than a visible hand-held weapon.
  if(["sun","sunbeam","yellowwater","bluewater","it"].includes(type))return false;
- // Treat the rotating weapon as a long guard segment extending from the orb.
- const a=defender.weaponAngle;
- const start=defender.r+2,end=defender.r+21+46;
- const x1=defender.x+Math.cos(a)*start;
- const y1=defender.y+Math.sin(a)*start;
- const x2=defender.x+Math.cos(a)*end;
- const y2=defender.y+Math.sin(a)*end;
- return pointSegmentDistance(p.x,p.y,x1,y1,x2,y2)<p.r+9;
+ // Use the same active segment that collides with the opponent's weapon.
+ const segment=getWeaponSegment(defender);
+ if(!segment)return false;
+ return pointSegmentDistance(p.x,p.y,segment.x1,segment.y1,segment.x2,segment.y2)<p.r+12;
 }
 function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
@@ -596,7 +637,7 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();
+  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();checkWeaponClashes();
   // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
   clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
