@@ -44,6 +44,8 @@ button:active{transform:scale(.97)}
 .skin-heading h2{font-size:19px;margin:0}
 .skin-heading span{color:#ccc;font-size:14px}
 .skin-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px}
+.skin-layout.abilities-only{grid-template-columns:minmax(0,1fr) 220px}
+.skin-layout.abilities-only .collection{grid-column:1}
 .categories,.collection,.detail{background:#08090d;border:2px solid #eee;border-radius:15px;padding:10px;min-width:0}
 .collection-tabs{display:flex;gap:8px;margin:0 0 10px}
 .collection-tabs button{flex:1;background:#141522;border:1px solid #5d5878}
@@ -76,6 +78,8 @@ button:active{transform:scale(.97)}
  main{padding:8px}
  .panel{padding:10px}
  .skin-layout{grid-template-columns:83px minmax(0,1fr)}
+ .skin-layout.abilities-only{grid-template-columns:minmax(0,1fr)}
+ .skin-layout.abilities-only .detail{grid-column:1}
  .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
  .categories button{font-size:10px;padding:9px 3px}
  .skin-heading h2{font-size:16px}
