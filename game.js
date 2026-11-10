@@ -83,6 +83,16 @@ const skins = names.map((name,id) => {
  };
 });
 
+// 5 quả cầu Hạng S với chỉ số và đạn năng lượng riêng.
+const sTier = [
+ {id:100,name:"Nam",color:"#36b8ff",weapon:"gun",weaponName:"Súng năng lượng",weaponColor:"#8fe7ff",damage:24,maxHP:125,projectile:"pulse",desc:"Cầm súng năng lượng mini, bắn đạn xung xanh sáng."},
+ {id:101,name:"Ánh Dương",color:"#ffd447",weapon:"sunbeam",weaponName:"Tia ánh dương",weaponColor:"#fff19a",damage:22,maxHP:118,projectile:"sunbeam",desc:"Phóng luồng ánh sáng vàng rực từ chính quả cầu."},
+ {id:102,name:"Cầu Chó Shiba",color:"#e8a34f",weapon:"yellowwater",weaponName:"Thủy cầu vàng",weaponColor:"#ffe36e",damage:20,maxHP:135,projectile:"yellowwater",desc:"Bắn những giọt nước năng lượng màu vàng."},
+ {id:103,name:"Cá Nóc",color:"#36c9b4",weapon:"bluewater",weaponName:"Thủy cầu xanh",weaponColor:"#62efff",damage:18,maxHP:150,projectile:"bluewater",desc:"Bắn bong bóng nước xanh có ánh sáng."},
+ {id:104,name:"Hope",color:"#8e58d9",weapon:"it",weaponName:"Hồng cầu ảo ảnh",weaponColor:"#ff466d",damage:28,maxHP:110,projectile:"it",desc:"Phóng hồng cầu đỏ với vệt sáng và hiệu ứng ảo ảnh ma mị."}
+];
+sTier.forEach(s=>skins.push({id:s.id,name:s.name,color:s.color,category:"Hạng S",weapon:s.weapon,weaponInfo:{name:s.weaponName,desc:s.desc,damage:s.damage,color:s.weaponColor},trait:"⭐ HẠNG S",maxHP:s.maxHP,baseDamage:s.damage,power:"Hạng S",description:s.desc,projectile:s.projectile,rank:"S"}));
+
 const abilities = [
  {name:"Hút máu",desc:"Hồi lại một phần HP mỗi khi đánh trúng.",color:"#f36c91",icon:"♥"},
  {name:"Giăng tơ",desc:"Làm chậm tốc độ di chuyển của đối thủ.",color:"#d9dce8",icon:"✳"},
@@ -101,7 +111,7 @@ const abilities = [
  {name:"Không gian",desc:"Tạo xung lực không gian quanh quả cầu.",color:"#ec78d9",icon:"✦"},
  {name:"Phản đòn",desc:"Có cơ hội phản lại một phần sát thương.",color:"#8186a9",icon:"↶"}
 ].map((a,i)=>({ ...a, maxHP:[90,105,95,110,100,125,90,105,95,145,115,85,100,95,100,120][i], damage:[15,10,17,12,18,9,19,13,11,8,10,22,14,12,16,13][i], cooldown:[1.1,1.3,1.0,1.4,1.2,1.5,1.0,1.25,1.4,1.6,1.5,1.0,1.3,0.9,1.2,1.25][i] }));
-const categories = ["✦ Tất cả (100)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt"];
+const categories = ["✦ Tất cả (105)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
 let selected=0, equipped=0, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
 let player=null, enemy=null, projectiles=[], particles=[], lastFrame=0;
@@ -121,7 +131,7 @@ function makeOrb(x,y,skin,side,abilityId){
 }
 function resetFight(){
  player=makeOrb(140,H/2,equipped,0,equippedAbility);
- enemySkin=Math.floor(Math.random()*100);
+ enemySkin=Math.floor(Math.random()*skins.length);
  if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
  const enemyAbility=enemySkin%abilities.length;
  enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
@@ -160,7 +170,7 @@ function renderCategories(){
  const el=$("categories");el.innerHTML="";
  categories.forEach((label,i)=>{
   const b=document.createElement("button");b.textContent=label;
-  const f=i===0?"Tất cả":["Tấn công","Hồi phục","Phòng thủ","Điện","Khống chế","Hút máu","Đặc biệt"][i-1];
+  const f=["Tất cả","Tấn công","Hồi phục","Phòng thủ","Điện","Khống chế","Hút máu","Đặc biệt","Hạng S"][i];
   if(filter===f)b.classList.add("active");
   b.onclick=()=>{filter=f;page=0;renderSkins();};el.appendChild(b);
  });
@@ -174,7 +184,7 @@ function setCollectionTab(tab){
 }
 function skinMark(id){
  const marks=["♛","✳","ϟ","❄","♨","❧","☾","≈","◷","⬟","✧","♆","☣","〰","✦","◖","●","⚙","☼","☢","♜","❄","♨","❀","◌","▰","✦","⚔","✧","➶","≈","❀","≋","〰","ϟ","♨","☄","◇","◆","◉","◉","◉","▰","⚒","☾","☽","☼","✧","✦","☄","⚙","◎","⌁","▱","◌","☣","✳","☘","❀","✿","☘","♧","♧","♧","✣","〰","◢","◒","◆","●","●","●","●","◈","◉","◉","◌","≈","✧","♜","ϟ","❄","♨","〰","⬟","◌","✥","◈","◐","☘","✹","∞","◉","↶","〰","✧","◎","✹","☼","✦"];
- return marks[id]||"●";
+ return ({100:"🔫",101:"☼",102:"🐕",103:"🐡",104:"🎈"})[id]||marks[id]||"●";
 }
 function renderSkins(){
  $("skinTab").classList.toggle("active",collectionTab==="skin");
@@ -184,8 +194,8 @@ function renderSkins(){
  const list=collectionTab==="skin" ? skins.filter(s=>filter==="Tất cả"||s.category===filter) : abilities;
  const pages=Math.max(1,Math.ceil(list.length/20));page=Math.min(page,pages-1);
  $("pageText").textContent=(page+1)+" / "+pages;
- $("skinHeading").textContent=collectionTab==="skin"?"Ngoại hình · 100 quả cầu":"Kỹ năng · 16 chiêu thức";
- $("collectionCount").textContent=collectionTab==="skin"?"(100/100)":"(16/16)";
+ $("skinHeading").textContent=collectionTab==="skin"?"Ngoại hình · 105 quả cầu":"Kỹ năng · 16 chiêu thức";
+ $("collectionCount").textContent=collectionTab==="skin"?"(105/105)":"(16/16)";
  const grid=$("skinGrid");grid.innerHTML="";
  list.slice(page*20,page*20+20).forEach((s,i)=>{
   const id=collectionTab==="skin"?s.id:i;
@@ -251,6 +261,11 @@ function drawOrb(o){
  const s=skins[o.skin],x=o.x,y=o.y,r=o.r;
  ctx.save();ctx.translate(x,y);
  // Minimal identifying features only: shark fin, vampire fangs, warrior shield.
+ if(o.skin===100){ctx.save();ctx.translate(27,7);ctx.rotate(-.25);ctx.fillStyle="#263b55";ctx.strokeStyle="#bdefff";ctx.lineWidth=2;ctx.fillRect(-2,-5,20,10);ctx.fillRect(9,3,6,10);ctx.fillStyle="#8fe7ff";ctx.fillRect(15,-3,8,5);ctx.restore();}
+ if(o.skin===101){ctx.strokeStyle="#fff09a";ctx.lineWidth=3;for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*34,Math.sin(a)*34);ctx.lineTo(Math.cos(a)*46,Math.sin(a)*46);ctx.stroke();}}
+ if(o.skin===102){polygon([[-23,-19],[-27,-42],[-8,-29]],"#9b572e","#ffe0a6");polygon([[8,-29],[27,-42],[23,-19]],"#9b572e","#ffe0a6");ctx.fillStyle="#fff0cf";ctx.beginPath();ctx.ellipse(0,12,13,10,0,0,Math.PI*2);ctx.fill();}
+ if(o.skin===103){ctx.strokeStyle="#d7fff8";ctx.lineWidth=4;for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*31,Math.sin(a)*31);ctx.lineTo(Math.cos(a)*40,Math.sin(a)*40);ctx.stroke();}}
+ if(o.skin===104){ctx.strokeStyle="#ff527a";ctx.lineWidth=3;ctx.shadowBlur=16;ctx.shadowColor="#ff315e";ctx.beginPath();ctx.arc(0,0,39,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
  if(o.skin===66){
   polygon([[-10,-25],[0,-49],[12,-25]],"#0a79b2","#b8f1ff");
   polygon([[-25,1],[-43,-10],[-34,13]],"#178fc5","#b8f1ff");
@@ -319,7 +334,7 @@ function drawOrb(o){
 
  // Weapon attached to orb. Weapons are visual objects; only orb-body contact causes damage.
  if(s.weapon==="shield"||o.skin===25) drawShield(o,Math.atan2((o.side?player.y:enemy.y)-o.y,(o.side?player.x:enemy.x)-o.x));
- if(s.weapon!=="sun"&&s.weapon!=="shield"){
+ if(!["sun","shield","sunbeam","yellowwater","bluewater","it"].includes(s.weapon)){
   const a=o.weaponAngle,rad=r+21,wx=x+Math.cos(a)*rad,wy=y+Math.sin(a)*rad;
   drawWeapon(s.weapon,wx,wy,a,s.weaponInfo.color);
  }
@@ -348,6 +363,7 @@ function drawWeapon(type,x,y,angle,color){
  }else if(type==="staff"){
   ctx.strokeStyle="#d7c1ff";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,10);ctx.lineTo(0,-17);ctx.stroke();
   ctx.fillStyle="#d39aff";ctx.beginPath();ctx.arc(0,-20,5,0,Math.PI*2);ctx.fill();
+ }else if(type==="gun"){ctx.fillStyle="#263b55";ctx.strokeStyle="#bdefff";ctx.lineWidth=2;ctx.fillRect(-3,-5,19,10);ctx.fillRect(8,3,6,10);ctx.fillStyle="#8fe7ff";ctx.fillRect(13,-3,11,5);
  }else if(type==="bow"){
   ctx.strokeStyle="#d8bd8c";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,13,-1.2,1.2);ctx.stroke();
   ctx.strokeStyle="#fff";ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(4,-12);ctx.lineTo(4,12);ctx.stroke();
@@ -356,7 +372,9 @@ function drawWeapon(type,x,y,angle,color){
 }
 function drawProjectile(p){
  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));
- if(p.type==="arrow"){
+ if(p.type==="it"){ctx.shadowBlur=22;ctx.shadowColor="#ff315e";ctx.fillStyle="#ff466d";ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffb5c5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.stroke();}
+ else if(p.type==="yellowwater"||p.type==="bluewater"){ctx.shadowBlur=17;ctx.shadowColor=p.color;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffffffaa";ctx.beginPath();ctx.arc(-2,-2,2,0,Math.PI*2);ctx.fill();}
+ else if(p.type==="arrow"){
   ctx.strokeStyle="#fff0bb";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(8,0);ctx.stroke();
   polygon([[8,0],[1,-4],[1,4]],"#fff0bb");
  }else{
@@ -408,20 +426,20 @@ function separateOrbs(){
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
- if(type!=="bow"&&type!=="staff")return;
- let cooldown=abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
+ if(!["bow","staff","gun","sunbeam","yellowwater","bluewater","it"].includes(type))return;
+ let cooldown=type==="gun"?0.85:type==="sunbeam"?0.95:type==="yellowwater"?1.05:type==="bluewater"?1.15:type==="it"?1.25:abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
  if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
  projectiles.push({
   x:o.x+dx/d*(o.r+8),y:o.y+dy/d*(o.r+8),
-  vx:dx/d*(type==="bow"?7.5:5.2),
-  vy:dy/d*(type==="bow"?7.5:5.2),
-  r:5,life:2.1,owner:o,
-  type:type==="bow"?"arrow":"magic",
-  damage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
+  vx:dx/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
+  vy:dy/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
+  r:type==="it"?8:6,life:2.1,owner:o,
+  type:type==="bow"?"arrow":(s.projectile||"magic"),
+  damage:s.rank==="S"?s.baseDamage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
  });
- addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="bow"?"mũi tên":"đạn phép từ trượng")+"!");
+ addLog(o===player?"player":"enemy",s.name+" phóng "+(s.rank==="S"?s.weaponInfo.name:(type==="bow"?"mũi tên":"đạn phép"))+" · "+s.baseDamage+" DMG!");
 }
 function shieldBlocks(target,attacker){
  if(target.skin!==25||target.shieldCooldown>0)return false;
@@ -468,7 +486,7 @@ function checkOrbitWeaponHits(){
  for(const attacker of [player,enemy]){
   if(!attacker||attacker.hitCooldown>0)continue;
   const type=skins[attacker.skin].weapon;
-  if(["sun","bow","staff","shield"].includes(type))continue;
+  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield"].includes(type))continue;
   const target=attacker===player?enemy:player;
   const radius=attacker.r+24;
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
