@@ -339,7 +339,7 @@ function drawOrb(o){
   drawWeapon(s.weapon,wx,wy,a,s.weaponInfo.color);
  }
  ctx.textAlign="center";ctx.font="bold 12px Arial";ctx.fillStyle="#fff";
- ctx.fillText(s.name,x,y+r+19);
+ ctx.fillText(o.side===0?"Bạn":"Địch",x,y+r+19);
 }
 function drawOrbHP(o){
  const current=o===player?playerHP:enemyHP;
