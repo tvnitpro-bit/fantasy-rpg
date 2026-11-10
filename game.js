@@ -427,9 +427,11 @@ function moveOrb(o,dt,target){
   // Di chuyen cham, huong ve doi thu mot cach mem.
   if(target){
    const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
-   const desiredX=dx/d*0.85,desiredY=dy/d*0.85;
-   o.vx=o.vx*.97+desiredX*.03;
-   o.vy=o.vy*.97+desiredY*.03;
+   // Chi hut ve doi thu khi con o xa; khi gan nhau thi chu dong tach ra.
+   const direction=d>155?1:-1;
+   const desiredX=dx/d*0.75*direction,desiredY=dy/d*0.75*direction;
+   o.vx=o.vx*.94+desiredX*.06;
+   o.vy=o.vy*.94+desiredY*.06;
   }
   const speedBonus=o.ability===13?1.1:1;
   o.x+=o.vx*dt*33.33*speedBonus;o.y+=o.vy*dt*33.33*speedBonus;
@@ -444,8 +446,8 @@ function separateOrbs(){
   const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
   player.x-=nx*overlap;player.y-=ny*overlap;
   enemy.x+=nx*overlap;enemy.y+=ny*overlap;
-  player.vx=-nx*0.9;player.vy=-ny*0.9;
-  enemy.vx=nx*0.9;enemy.vy=ny*0.9;
+  player.vx=-nx*1.1;player.vy=-ny*1.1;
+  enemy.vx=nx*1.1;enemy.vy=ny*1.1;
   // Important: orb-to-orb collision is only a physical bounce, never HP damage.
  }
  // Va cham giua hai qua cau co the day toa do; kep lai ca hai ngay sau do.
