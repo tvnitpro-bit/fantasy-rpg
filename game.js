@@ -539,6 +539,13 @@ function drawProjectile(p){
  }
  ctx.restore();
 }
+function spawnSpiderWallWeb(o,wall){
+ if(o.skin!==115||o.wallWebCooldown>0)return;
+ o.wallWebCooldown=3.4;const pad=o.r+3;
+ const line=(wall==="left"||wall==="right")?{x1:pad,y1:o.y,x2:W-pad,y2:o.y}:{x1:o.x,y1:pad,x2:o.x,y2:H-pad};
+ spiderWebs.push({wallLine:true,...line,x:(line.x1+line.x2)/2,y:(line.y1+line.y2)/2,r:0,hits:0,maxHits:2,lockout:0,life:8,owner:o});
+ addLog(o===player?"player":"enemy","🕸 Nhện bật khỏi tường và bắn tơ sang phía đối diện!");
+}
 function clampOrbToArena(o){
   const w=canvas.width,h=canvas.height,pad=o.r+3;
   const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
@@ -549,17 +556,17 @@ function clampOrbToArena(o){
   }
   // Bat tuong phan xa ro rang: khong de qua cau dung/luot doc canh san.
   if(o.x<=minX){
-   o.x=minX;
+   o.x=minX;if(o.vx<=0)spawnSpiderWallWeb(o,"left");
    if(o.vx<=0){o.vx=Math.max(.85,Math.abs(o.vx));o.vy+=(Math.random()-.5)*.18;}
   }else if(o.x>=maxX){
-   o.x=maxX;
+   o.x=maxX;if(o.vx>=0)spawnSpiderWallWeb(o,"right");
    if(o.vx>=0){o.vx=-Math.max(.85,Math.abs(o.vx));o.vy+=(Math.random()-.5)*.18;}
   }
   if(o.y<=minY){
-   o.y=minY;
+   o.y=minY;if(o.vy<=0)spawnSpiderWallWeb(o,"top");
    if(o.vy<=0){o.vy=Math.max(.85,Math.abs(o.vy));o.vx+=(Math.random()-.5)*.18;}
   }else if(o.y>=maxY){
-   o.y=maxY;
+   o.y=maxY;if(o.vy>=0)spawnSpiderWallWeb(o,"bottom");
    if(o.vy>=0){o.vy=-Math.max(.85,Math.abs(o.vy));o.vx+=(Math.random()-.5)*.18;}
   }
   o.x=Math.max(minX,Math.min(maxX,o.x));
@@ -592,26 +599,13 @@ function moveOrb(o,dt){
   }
  }
 function separateOrbs(){
- if((player&&player.biteTarget===enemy)||(enemy&&enemy.biteTarget===player)){
-  clampOrbToArena(player);clampOrbToArena(enemy);return;
+ const all=[player,...activeOpponents()];
+ for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
+  const a=all[i],b=all[j];if(a.biteTarget===b||b.biteTarget===a)continue;
+  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,min=a.r+b.r;
+  if(d<min){const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;a.x-=nx*overlap;a.y-=ny*overlap;b.x+=nx*overlap;b.y+=ny*overlap;const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){const impulse=-(1+.72)*rel/2;a.vx-=impulse*nx;a.vy-=impulse*ny;b.vx+=impulse*nx;b.vy+=impulse*ny;}}
+  clampOrbToArena(a);clampOrbToArena(b);
  }
-  const dx=enemy.x-player.x,dy=enemy.y-player.y,d=Math.hypot(dx,dy)||1,min=player.r+enemy.r;
-  if(d<min){
-   const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
-   player.x-=nx*overlap;player.y-=ny*overlap;
-   enemy.x+=nx*overlap;enemy.y+=ny*overlap;
-   // Bat lai theo huong va cham, chi tao xung luc khi hai qua cau dang tien lai gan.
-   const relativeNormal=(enemy.vx-player.vx)*nx+(enemy.vy-player.vy)*ny;
-   if(relativeNormal<0){
-    const impulse=-(1+0.72)*relativeNormal/2;
-    player.vx-=impulse*nx;player.vy-=impulse*ny;
-    enemy.vx+=impulse*nx;enemy.vy+=impulse*ny;
-    const tangentJitter=(Math.random()-.5)*.45;
-    player.vx+=-ny*tangentJitter;player.vy+=nx*tangentJitter;
-    enemy.vx+=ny*tangentJitter;enemy.vy-=nx*tangentJitter;
-   }
-  }
-  clampOrbToArena(player);clampOrbToArena(enemy);
  }
 function fireIfNeeded(o,target){
  if(!o||o.basicNPC||!target)return;
@@ -801,13 +795,45 @@ function checkOrbitWeaponHits(){
   for(const target of targets){const radius=attacker.r+24,wx=attacker.x+Math.cos(attacker.weaponAngle)*radius,wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){hitOrb(target,attacker,Math.round(skins[attacker.skin].baseDamage+(abilities[attacker.ability]?.damage||0)*.2),"orbit");break;}}
  }
 }
+function updatePoisonClouds(dt){
+ poisonCloudTimer-=dt;
+ for(const owner of [player,...activeOpponents()]){
+  if(owner&&(owner.skin===105||owner.skin===139)&&poisonCloudTimer<=0){
+   poisonClouds.push({x:owner.x,y:owner.y,r:76,life:5,owner,playerTick:0,enemyTick:0,enemy2Tick:0});
+   poisonCloudTimer=3.5;addLog(owner===player?"player":"enemy","☣ Thả một đám mây độc!");
+  }
+ }
+ for(let i=poisonClouds.length-1;i>=0;i--){
+  const cloud=poisonClouds[i];cloud.life-=dt;
+  if(cloud.life<=0){poisonClouds.splice(i,1);continue;}
+  for(const orb of [player,...activeOpponents()]){
+   if(!orb||orb===cloud.owner||Math.hypot(orb.x-cloud.x,orb.y-cloud.y)>orb.r+cloud.r)continue;
+   const key=orb===player?"playerTick":orb===enemy?"enemyTick":"enemy2Tick";
+   cloud[key]-=dt;
+   if(cloud[key]<=0){setHP(orb,getHP(orb)-1);cloud[key]=2;burst(orb.x,orb.y,"#7dff48",3);updateUI();}
+  }
+ }
+ checkBattleEnd();
+}
+function drawPoisonClouds(){for(const c of poisonClouds){ctx.save();ctx.globalAlpha=Math.min(.48,c.life/1.5);ctx.fillStyle="#76e64d";ctx.shadowBlur=22;ctx.shadowColor="#65ff42";ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+function updateBasicNpcCombat(dt){
+ for(const npc of activeOpponents()){
+  if(!npc.basicNPC)continue;
+  npc.contactCooldown=Math.max(0,npc.contactCooldown-dt);
+  if(Math.hypot(npc.x-player.x,npc.y-player.y)<npc.r+player.r+4&&npc.contactCooldown<=0){
+   setHP(player,playerHP-(npc.contactDamage||2));npc.contactCooldown=1.25;player.flash=.18;
+   burst(player.x,player.y,"#d5deea",5);addLog("enemy","NPC va chạm: -"+(npc.contactDamage||2)+" HP");updateUI();
+  }
+ }
+ checkBattleEnd();
+}
 function updateSpiderTraps(dt){
  // Each active spider lays one web every five seconds near the opponent's path.
- for(const spider of [player,enemy]){
-  if(!spider||(spider.ability!==26&&spider.skin!==1&&spider.skin!==115))continue;
+ for(const spider of [player,...activeOpponents()]){
+  if(!spider||(spider.ability!==26&&spider.skin!==1))continue;
   spider.webShotTimer=(spider.webShotTimer??5)-dt;
   if(spider.webShotTimer<=0){
-   const target=spider===player?enemy:player;
+   const target=nearestTarget(spider);if(!target)continue;
    const angle=Math.random()*Math.PI*2,dist=75+Math.random()*95;
    const x=Math.max(42,Math.min(W-42,target.x+Math.cos(angle)*dist));
    const y=Math.max(42,Math.min(H-42,target.y+Math.sin(angle)*dist));
@@ -823,11 +849,11 @@ function updateSpiderTraps(dt){
   web.life-=dt;web.lockout=Math.max(0,web.lockout-dt);
   if(web.life<=0||web.hits>=web.maxHits){spiderWebs.splice(i,1);continue;}
   if(web.lockout>0)continue;
-  for(const orb of [player,enemy]){
+  for(const orb of [player,...activeOpponents()]){
    if(!orb||orb===web.owner||(orb.webbedTimer||0)>0)continue;
-   if(Math.hypot(orb.x-web.x,orb.y-web.y)<=orb.r+web.r*.55){
+   if(web.wallLine?pointSegmentDistance(orb.x,orb.y,web.x1,web.y1,web.x2,web.y2)<=orb.r+4:Math.hypot(orb.x-web.x,orb.y-web.y)<=orb.r+web.r*.55){
     web.hits++;web.lockout=.9;orb.webbedTimer=.7;
-    if(orb===player)playerHP=Math.max(0,playerHP-5);else enemyHP=Math.max(0,enemyHP-5);
+    setHP(orb,getHP(orb)-5);
     burst(web.x,web.y,"#d9f5b4",10);
     addLog(orb===player?"player":"enemy","🕸 Dính tơ nhện! Mất 5 HP và bị giữ chân.");
     if(web.hits>=web.maxHits){
@@ -835,11 +861,7 @@ function updateSpiderTraps(dt){
      spiderWebs.splice(i,1);
     }
     updateUI();
-    if(playerHP<=0||enemyHP<=0){
-     ended=true;playing=false;
-     addLog("system",enemyHP<=0?"🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":"💥 BẠN ĐÃ THUA ROUND "+round+"!");
-     updateUI();
-    }
+    checkBattleEnd();
     break;
    }
   }
@@ -851,6 +873,7 @@ function drawSpiderWebs(){
   ctx.globalAlpha=Math.min(1,web.life/2)*.9;
   ctx.strokeStyle="#d9f5b4";ctx.lineWidth=2;
   ctx.shadowBlur=9;ctx.shadowColor="#b9ec85";
+  if(web.wallLine){ctx.beginPath();ctx.moveTo(web.x1,web.y1);ctx.lineTo(web.x2,web.y2);ctx.stroke();ctx.restore();continue;}
   for(let k=0;k<8;k++){
    const a=k*Math.PI/4;
    ctx.beginPath();ctx.moveTo(web.x,web.y);
@@ -882,16 +905,15 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();updateVampireBites(dt);updateSpiderTraps(dt);updateAbilityEffects(dt);checkWeaponClashes();
-  // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
-  clampOrbToArena(player);clampOrbToArena(enemy);
-  fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
-  updateProjectiles(dt);checkOrbitWeaponHits();
+  moveOrb(player,dt);for(const foe of activeOpponents())moveOrb(foe,dt);separateOrbs();updateVampireBites(dt);updatePoisonClouds(dt);updateSpiderTraps(dt);updateAbilityEffects(dt);checkWeaponClashes();
+  clampOrbToArena(player);for(const foe of activeOpponents())clampOrbToArena(foe);
+  fireIfNeeded(player,nearestTarget(player));for(const foe of activeOpponents())fireIfNeeded(foe,player);
+  updateProjectiles(dt);checkOrbitWeaponHits();updateBasicNpcCombat(dt);
  }
  updateParticles(dt);
- drawSpiderWebs();projectiles.forEach(drawProjectile);drawParticles();
- drawOrb(player);drawOrb(enemy);
- drawOrbHP(player);drawOrbHP(enemy);
+ drawSpiderWebs();drawPoisonClouds();projectiles.forEach(drawProjectile);drawParticles();
+ drawOrb(player);for(const foe of [enemy,enemy2])if(foe&&getHP(foe)>0)drawOrb(foe);
+ drawOrbHP(player);if(enemy)drawOrbHP(enemy);if(enemy2&&getHP(enemy2)>0)drawOrbHP(enemy2);
  requestAnimationFrame(frame);
 }
 function init(){
