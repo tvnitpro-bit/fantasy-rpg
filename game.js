@@ -124,7 +124,7 @@ const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
  return {
-  x,y,vx:side? -0.9:0.9,vy:(Math.random()-.5)*0.8,r:18,skin,ability:abilityId,
+  x,y,vx:Math.cos(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),vy:Math.sin(Math.random()*Math.PI*2)*(1.0+Math.random()*.45),r:24,skin,ability:abilityId,turnTimer:.5+Math.random()*1.2,
   weaponAngle:Math.random()*Math.PI*2,weaponCooldown:.5+Math.random()*.5,
   hitCooldown:0,shieldCooldown:0,flash:0,side
  };
@@ -421,38 +421,46 @@ function clampOrbToArena(o){
  o.x=Math.max(minX,Math.min(maxX,o.x));
  o.y=Math.max(minY,Math.min(maxY,o.y));
 }
-function moveOrb(o,dt,target){
+function moveOrb(o,dt){
   o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
   o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
-  // Di chuyen cham, huong ve doi thu mot cach mem.
-  if(target){
-   const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
-   // Chi hut ve doi thu khi con o xa; khi gan nhau thi chu dong tach ra.
-   const direction=d>155?1:-1;
-   const desiredX=dx/d*0.75*direction,desiredY=dy/d*0.75*direction;
-   o.vx=o.vx*.94+desiredX*.06;
-   o.vy=o.vy*.94+desiredY*.06;
+  // Huong di chuyen doi ngau nhien theo tung khoang thoi gian; khong hut ve doi thu.
+  o.turnTimer-=dt;
+  if(o.turnTimer<=0){
+   const angle=Math.atan2(o.vy,o.vx)+(Math.random()-.5)*1.25;
+   const speed=1.0+Math.random()*.55;
+   o.vx=Math.cos(angle)*speed;o.vy=Math.sin(angle)*speed;
+   o.turnTimer=.65+Math.random()*1.25;
   }
   const speedBonus=o.ability===13?1.1:1;
   o.x+=o.vx*dt*90*speedBonus;o.y+=o.vy*dt*90*speedBonus;
   clampOrbToArena(o);
   const speed=Math.hypot(o.vx,o.vy);
   if(speed>1.8){o.vx=o.vx/speed*1.8;o.vy=o.vy/speed*1.8;}
-  if(speed<0.45){o.vx+=o.side?-.08:.08;o.vy+=(Math.random()-.5)*.08;}
+  if(speed<.55){
+   const angle=Math.random()*Math.PI*2;
+   o.vx=Math.cos(angle)*.9;o.vy=Math.sin(angle)*.9;
+  }
  }
 function separateOrbs(){
- const dx=enemy.x-player.x,dy=enemy.y-player.y,d=Math.hypot(dx,dy)||1,min=player.r+enemy.r;
- if(d<min){
-  const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
-  player.x-=nx*overlap;player.y-=ny*overlap;
-  enemy.x+=nx*overlap;enemy.y+=ny*overlap;
-  player.vx=-nx*2.2;player.vy=-ny*2.2;
-  enemy.vx=nx*2.2;enemy.vy=ny*2.2;
-  // Important: orb-to-orb collision is only a physical bounce, never HP damage.
+  const dx=enemy.x-player.x,dy=enemy.y-player.y,d=Math.hypot(dx,dy)||1,min=player.r+enemy.r;
+  if(d<min){
+   const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
+   player.x-=nx*overlap;player.y-=ny*overlap;
+   enemy.x+=nx*overlap;enemy.y+=ny*overlap;
+   // Bat lai theo huong va cham, chi tao xung luc khi hai qua cau dang tien lai gan.
+   const relativeNormal=(enemy.vx-player.vx)*nx+(enemy.vy-player.vy)*ny;
+   if(relativeNormal<0){
+    const impulse=-(1+0.72)*relativeNormal/2;
+    player.vx-=impulse*nx;player.vy-=impulse*ny;
+    enemy.vx+=impulse*nx;enemy.vy+=impulse*ny;
+    const tangentJitter=(Math.random()-.5)*.45;
+    player.vx+=-ny*tangentJitter;player.vy+=nx*tangentJitter;
+    enemy.vx+=ny*tangentJitter;enemy.vy-=nx*tangentJitter;
+   }
+  }
+  clampOrbToArena(player);clampOrbToArena(enemy);
  }
- // Va cham giua hai qua cau co the day toa do; kep lai ca hai ngay sau do.
- clampOrbToArena(player);clampOrbToArena(enemy);
-}
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
@@ -544,7 +552,7 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt,enemy);moveOrb(enemy,dt,player);separateOrbs();
+  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();
   // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
   clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
