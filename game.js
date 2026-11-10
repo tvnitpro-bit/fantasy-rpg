@@ -341,6 +341,29 @@ function drawOrb(o){
  ctx.textAlign="center";ctx.font="bold 12px Arial";ctx.fillStyle="#fff";
  ctx.fillText(s.name,x,y+r+19);
 }
+function drawOrbHP(o){
+ const current=o===player?playerHP:enemyHP;
+ const max=skins[o.skin].maxHP;
+ const ratio=Math.max(0,Math.min(1,current/max));
+ const barW=7,barH=54;
+ const bx=o.side?o.x-o.r-17:o.x+o.r+10;
+ const by=o.y-barH/2;
+ ctx.save();
+ ctx.fillStyle="rgba(8,10,18,.88)";
+ ctx.strokeStyle="rgba(255,255,255,.72)";
+ ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.roundRect(bx-2,by-2,barW+4,barH+4,5);ctx.fill();ctx.stroke();
+ const fillH=barH*ratio;
+ const grad=ctx.createLinearGradient(0,by+barH,0,by);
+ grad.addColorStop(0,ratio>.35?"#28d978":"#ff424f");
+ grad.addColorStop(1,ratio>.35?"#9aff9c":"#ff9a9a");
+ ctx.fillStyle=grad;
+ ctx.beginPath();ctx.roundRect(bx,by+barH-fillH,barW,fillH,3);ctx.fill();
+ ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillStyle="#fff";
+ ctx.shadowColor="#000";ctx.shadowBlur=3;
+ ctx.fillText(Math.ceil(current),bx+barW/2,by-6);
+ ctx.restore();
+}
 function drawShield(o,faceAngle){
  ctx.save();ctx.translate(o.x,o.y);ctx.rotate(faceAngle);
  // Small flat shield to the incoming side
@@ -523,6 +546,7 @@ function frame(now){
  updateParticles(dt);
  projectiles.forEach(drawProjectile);drawParticles();
  drawOrb(player);drawOrb(enemy);
+ drawOrbHP(player);drawOrbHP(enemy);
  requestAnimationFrame(frame);
 }
 function init(){
