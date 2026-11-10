@@ -107,7 +107,7 @@ let logTimer=0;
 
 const canvas=document.getElementById("arena");
 const ctx=canvas.getContext("2d");
-const W=700,H=480;
+const W=canvas.width,H=canvas.height;
 const $=id=>document.getElementById(id);
 
 function makeOrb(x,y,skin,side,abilityId){
@@ -212,7 +212,7 @@ function showDetail(){
  $("detailPower").textContent=s.description;
  const weaponLabel=s.id===25?"Kiếm + Khiên":s.weaponInfo.name;
  $("detailWeapon").textContent=weaponLabel+" — "+s.weaponInfo.desc+(s.trait?" Đặc điểm: "+s.trait+".":"");
- $("detailStats").textContent="Ngoại hình thuần túy · Kỹ năng đang dùng: "+abilities[equippedAbility].name;
+ $("detailStats").textContent="HP: "+s.maxHP+" · DMG: "+s.damage+" · Kỹ năng đang dùng: "+abilities[equippedAbility].name;
  $("equipMessage").textContent=selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
 }
 function changePage(n){
@@ -301,7 +301,7 @@ function drawOrb(o){
  ctx.restore();
 
  // Weapon attached to orb. Weapons are visual objects; only orb-body contact causes damage.
- if(s.weapon==="shield"||o.skin===25) drawShield(o,Math.atan2((o.side?player.y:enemy.y)-o.y,(o.side?player.x:enemy.x)-o.x));
+ if(s.weapon==="shield") drawShield(o,Math.atan2((o.side?player.y:enemy.y)-o.y,(o.side?player.x:enemy.x)-o.x));
  if(s.weapon!=="sun"&&s.weapon!=="shield"){
   const a=o.weaponAngle,rad=r+21,wx=x+Math.cos(a)*rad,wy=y+Math.sin(a)*rad;
   drawWeapon(s.weapon,wx,wy,a,s.weaponInfo.color);
