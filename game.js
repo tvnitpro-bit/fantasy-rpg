@@ -646,8 +646,7 @@ function hitOrb(target,attacker,damage,type){
  if(isPlayerTarget)setHP(target,playerHP-damage);else setHP(target,getHP(target)-damage);
  if(type==="orbit"&&["dagger","sword","water"].includes(skins[attacker.skin].weapon))attacker.weaponSpin=-(attacker.weaponSpin||1);
  if(attacker.ability===0||attacker.ability===17){
-  if(attacker===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+damage*.25);
-  else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+damage*.25);
+  setHP(attacker,getHP(attacker)+damage*.25);
   addLog(attacker===player?"player":"enemy","♥ Hút máu hồi HP!");
  }
  if(attacker.ability===16)target.poisonTimer=2.4;
@@ -661,7 +660,7 @@ function hitOrb(target,attacker,damage,type){
  }
  if(attacker.ability===18)target.slowTimer=1.8;
  if(attacker.ability===19)target.burnTimer=2.4;
- if(attacker.ability===20){if(isPlayerTarget)enemyHP=Math.max(0,enemyHP-6);else playerHP=Math.max(0,playerHP-6);burst(target.x,target.y,"#ffbd72",14);}
+ if(attacker.ability===20){setHP(target,getHP(target)-6);burst(target.x,target.y,"#ffbd72",14);}
  if(attacker.ability===21)damage=Math.round(damage*1.18);
  if(attacker.ability===23)burst(target.x,target.y,"#fff27a",12);
  if(attacker.ability===26||attacker.skin===1||attacker.skin===115)spiderWebs.push({x:target.x,y:target.y,r:27,hits:0,maxHits:2,lockout:.9,life:15,owner:attacker});
@@ -771,7 +770,6 @@ function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
   const p=projectiles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;
   if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
-  if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
   const target=nearestTarget(p.owner);if(!target){projectiles.splice(i,1);continue;}
   // The defender's rotating weapon or shield can intercept an incoming projectile.
   if(weaponBlocksProjectile(target,p)){
@@ -798,7 +796,7 @@ function updatePoisonClouds(dt){
  poisonCloudTimer-=dt;
  for(const owner of [player,...activeOpponents()]){
   if(owner&&(owner.skin===105||owner.skin===139)&&poisonCloudTimer<=0){
-   poisonClouds.push({x:owner.x,y:owner.y,r:76,life:5,owner,playerTick:0,enemyTick:0,enemy2Tick:0});
+   poisonClouds.push({x:owner.x,y:owner.y,r:76,life:5,owner,playerTick:2,enemyTick:2,enemy2Tick:2});
    poisonCloudTimer=3.5;addLog(owner===player?"player":"enemy","☣ Thả một đám mây độc!");
   }
  }
