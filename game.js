@@ -694,7 +694,6 @@ function updateVampireBites(dt){
   if(d<=attacker.r+target.r+16){
    attacker.biteTarget=target;attacker.biteTimer=5;attacker.biteTick=1;
    attacker.biteDirX=dx/d;attacker.biteDirY=dy/d;
-   setHP(target,getHP(target)-3);setHP(attacker,getHP(attacker)+3);
    burst(target.x,target.y,"#ff5278",12);
    addLog(attacker===player?"player":"enemy","🧛 Bám dính 5 giây, hút 3 HP mỗi giây!");
    updateUI();
