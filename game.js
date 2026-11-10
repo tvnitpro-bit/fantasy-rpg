@@ -587,7 +587,7 @@ function moveOrb(o,dt){
    o.vx=Math.cos(angle)*speed;o.vy=Math.sin(angle)*speed;
    o.turnTimer=.65+Math.random()*1.25;
   }
-  const speedBonus=o.ability===13?1.18:1;
+  const speedBonus=o.skin===144?1.35:o.ability===13?1.18:1;
   if(o.ability===22){o.regenTimer-=dt;if(o.regenTimer<=0){setHP(o,getHP(o)+1);o.regenTimer=1.2;}}
   o.x+=o.vx*dt*90*speedBonus*(o.slowTimer>0?.55:1);o.y+=o.vy*dt*90*speedBonus*(o.slowTimer>0?.55:1);
   clampOrbToArena(o);
@@ -638,6 +638,11 @@ function hitOrb(target,attacker,damage,type){
  if(shieldBlocks(target,attacker))return;
  target.hitCooldown=.34;target.flash=.22;
  const isPlayerTarget=target===player;
+ if(target.basicNPC===false&&target.skin>=116&&["armor","crystal","turtle","golem"].includes(skins[target.skin].special)){
+  const reduction=skins[target.skin].special==="armor"?.72:skins[target.skin].special==="turtle"?.62:skins[target.skin].special==="golem"?.78:.84;
+  damage=Math.max(1,Math.round(damage*reduction));
+ }
+ if(attacker.skin>=116&&skins[attacker.skin].special==="knight"&&type==="orbit")damage+=3;
  const attackerAbility=abilities[attacker.ability];
  if(attacker.ability===11)damage=Math.round(damage*1.2);
  if(target.ability===9||target.ability===24)damage=Math.max(1,Math.round(damage*.78));
@@ -652,11 +657,15 @@ function hitOrb(target,attacker,damage,type){
  if(attacker.ability===16)target.poisonTimer=2.4;
  if(attacker.skin>=116){const sp=skins[attacker.skin].special;
   if(["burn","lava","phoenix","dragon"].includes(sp))target.burnTimer=3;
-  if(["freeze","water","frost","sand","root"].includes(sp))target.slowTimer=2.2;
+  if(["freeze","water","frost","sand","root","dolphin"].includes(sp))target.slowTimer=2.2;
   if(sp==="shock")setHP(target,getHP(target)-3);
   if(sp==="shadow")setHP(attacker,getHP(attacker)+3);
   if(sp==="wind"){target.vx+=Math.sign(target.x-attacker.x)*.8;target.vy+=(Math.random()-.5)*.6;}
   if(sp==="sting"||sp==="toxic")target.poisonTimer=3;
+  if(sp==="blessing"){attacker.blessingTimer=4;attacker.blessingTick=0;}
+  if(sp==="meteor"){
+   for(const other of (attacker===player?activeOpponents():[player]))if(other!==target&&Math.hypot(other.x-target.x,other.y-target.y)<115){setHP(other,getHP(other)-5);burst(other.x,other.y,"#ffc27b",7);}
+  }
  }
  if(attacker.ability===18)target.slowTimer=1.8;
  if(attacker.ability===19)target.burnTimer=2.4;
@@ -669,7 +678,7 @@ function hitOrb(target,attacker,damage,type){
  updateUI();
  checkBattleEnd();
 }
-function updateAbilityEffects(dt){for(const t of [player,...activeOpponents()]){if(!t)continue;t.spiritCooldown=Math.max(0,(t.spiritCooldown||0)-dt);for(const k of ["poisonTimer","burnTimer"]){if(t[k]>0){t[k]-=dt;t[k+"_tick"]=(t[k+"_tick"]||0)-dt;if(t[k+"_tick"]<=0){setHP(t,getHP(t)-2);t[k+"_tick"]=.6;burst(t.x,t.y,k==="poisonTimer"?"#75e64c":"#ff8b30",3);}}}t.slowTimer=Math.max(0,(t.slowTimer||0)-dt);if(t.ability===22){t.regenTimer-=dt;if(t.regenTimer<=0){setHP(t,getHP(t)+1);t.regenTimer=1.2;}}}checkBattleEnd();}
+function updateAbilityEffects(dt){for(const t of [player,...activeOpponents()]){if(!t)continue;t.spiritCooldown=Math.max(0,(t.spiritCooldown||0)-dt);for(const k of ["poisonTimer","burnTimer"]){if(t[k]>0){t[k]-=dt;t[k+"_tick"]=(t[k+"_tick"]||0)-dt;if(t[k+"_tick"]<=0){setHP(t,getHP(t)-2);t[k+"_tick"]=.6;burst(t.x,t.y,k==="poisonTimer"?"#75e64c":"#ff8b30",3);}}}t.slowTimer=Math.max(0,(t.slowTimer||0)-dt);if(t.blessingTimer>0){t.blessingTimer-=dt;t.blessingTick=(t.blessingTick||0)-dt;if(t.blessingTick<=0){setHP(t,getHP(t)+2);t.blessingTick=1;}}if(t.ability===22){t.regenTimer-=dt;if(t.regenTimer<=0){setHP(t,getHP(t)+1);t.regenTimer=1.2;}}}checkBattleEnd();}
 function updateVampireBites(dt){
  for(const attacker of [player,...activeOpponents()]){
   const target=nearestTarget(attacker);if(!target)continue;
