@@ -72,6 +72,8 @@ const skins = names.map((name,id) => {
  return {
   id,name,color:colors[id%colors.length],category:categoryById(id),
   weapon,weaponInfo:weaponInfo[weapon],trait,
+  maxHP: [0,25,9,10,66].includes(id) ? ({0:92,25:145,9:132,10:118,66:112}[id]) : 88 + ((id*17)%49),
+  baseDamage: [0,25,9,10,66].includes(id) ? ({0:12,25:9,9:8,10:11,66:14}[id]) : 8 + ((id*7)%13),
   power:categoryById(id),
   description: id===0 ? "Có đúng hai răng nanh nhỏ ở phần dưới quả cầu; hút lại một phần HP khi đánh trúng." :
     id===25 ? "Có một chiếc khiên bên cạnh quả cầu. Khiên chặn đòn định kỳ." :
@@ -123,7 +125,7 @@ function resetFight(){
  if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
  const enemyAbility=enemySkin%abilities.length;
  enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
- playerHP=abilities[player.ability].maxHP;enemyHP=abilities[enemy.ability].maxHP;playing=true;ended=false;
+ playerHP=skins[player.skin].maxHP;enemyHP=skins[enemy.skin].maxHP;playing=true;ended=false;
  projectiles=[]; particles=[];
  updateUI();
  $("log").innerHTML="";
@@ -145,10 +147,10 @@ function updateUI(){
  $("playerIcon").textContent="●";$("playerIcon").style.color=p.color;
  $("enemyIcon").textContent="●";$("enemyIcon").style.color=e.color;
  $("playerName").textContent=p.name;$("enemyName").textContent=e.name;
- const pMax=abilities[player?player.ability:equippedAbility].maxHP;
- const eMax=abilities[enemy?enemy.ability:enemySkin%abilities.length].maxHP;
- $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+abilities[player?player.ability:equippedAbility].damage;
- $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+abilities[enemy?enemy.ability:enemySkin%abilities.length].damage;
+ const pSkin=skins[player?player.skin:equipped],eSkin=skins[enemy?enemy.skin:enemySkin];
+ const pMax=pSkin.maxHP,eMax=eSkin.maxHP;
+ $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+pSkin.baseDamage;
+ $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+eSkin.baseDamage;
  $("playerBar").style.width=Math.max(0,playerHP/pMax*100)+"%";
  $("enemyBar").style.width=Math.max(0,enemyHP/eMax*100)+"%";
  $("roundText").textContent="ROUND "+round+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
@@ -170,6 +172,10 @@ function setCollectionTab(tab){
  $("categories").style.display=tab==="skin"?"flex":"none";
  filter="Tất cả";page=0;renderSkins();
 }
+function skinMark(id){
+ const marks=["♛","✳","ϟ","❄","♨","❧","☾","≈","◷","⬟","✧","♆","☣","〰","✦","◖","●","⚙","☼","☢","♜","❄","♨","❀","◌","▰","✦","⚔","✧","➶","≈","❀","≋","〰","ϟ","♨","☄","◇","◆","◉","◉","◉","▰","⚒","☾","☽","☼","✧","✦","☄","⚙","◎","⌁","▱","◌","☣","✳","☘","❀","✿","☘","♧","♧","♧","✣","〰","◢","◒","◆","●","●","●","●","◈","◉","◉","◌","≈","✧","♜","ϟ","❄","♨","〰","⬟","◌","✥","◈","◐","☘","✹","∞","◉","↶","〰","✧","◎","✹","☼","✦"];
+ return marks[id]||"●";
+}
 function renderSkins(){
  $("skinTab").classList.toggle("active",collectionTab==="skin");
  $("abilityTab").classList.toggle("active",collectionTab==="ability");
@@ -185,9 +191,8 @@ function renderSkins(){
   const id=collectionTab==="skin"?s.id:i;
   const active=collectionTab==="skin"?id===selected:id===selectedAbility;
   const b=document.createElement("button");b.className="skin"+(active?" selected":"");
-  const color=s.color||s.color||s.color;
   const label=collectionTab==="skin"?"#"+String(id+1).padStart(2,"0")+" "+s.name:s.name;
-  const symbol=collectionTab==="skin"?(id+1):s.icon;
+  const symbol=collectionTab==="skin"?skinMark(id):s.icon;
   b.innerHTML='<div class="skinball" style="background:'+(s.color||"#ddd")+';color:#17121a">'+symbol+'</div><small>'+label+'</small>';
   b.onclick=()=>{if(collectionTab==="skin")selected=id;else selectedAbility=id;renderSkins();};grid.appendChild(b);
  });
@@ -212,7 +217,7 @@ function showDetail(){
  $("detailPower").textContent=s.description;
  const weaponLabel=s.id===25?"Kiếm + Khiên":s.weaponInfo.name;
  $("detailWeapon").textContent=weaponLabel+" — "+s.weaponInfo.desc+(s.trait?" Đặc điểm: "+s.trait+".":"");
- $("detailStats").textContent="Ngoại hình thuần túy · Kỹ năng đang dùng: "+abilities[equippedAbility].name;
+ $("detailStats").textContent="HP: "+s.maxHP+" · Sát thương cơ bản: "+s.baseDamage+". Kỹ năng trang bị riêng: "+abilities[equippedAbility].name;
  $("equipMessage").textContent=selected===equipped?"✓ Đang trang bị":"Có thể trang bị";
 }
 function changePage(n){
@@ -292,6 +297,18 @@ function drawOrb(o){
  ctx.fillStyle="#17121a";ctx.beginPath();
  ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
  ctx.strokeStyle="#17121a";ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(0,3,7,.2,Math.PI-.2);ctx.stroke();
+ // Dau hieu hinh hoc don gian theo chu de, khong anime hoa.
+ if(o.skin===1){ctx.strokeStyle="#f4f4f4";ctx.lineWidth=2;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(0,0,12+k*7,-.9,.9);ctx.stroke();}}
+ if([2,34,80].includes(o.skin)){ctx.strokeStyle="#fff27a";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-22,18);ctx.lineTo(-5,2);ctx.lineTo(2,14);ctx.lineTo(20,-16);ctx.stroke();}
+ if([3,21,81].includes(o.skin)){ctx.fillStyle="#e8fbff";for(let k=0;k<6;k++){const a=k*Math.PI/3;ctx.beginPath();ctx.arc(Math.cos(a)*19,Math.sin(a)*19,3,0,Math.PI*2);ctx.fill();}}
+ if([4,22,35,82].includes(o.skin)){ctx.strokeStyle="#ffb13b";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,20,-2.5,2.5);ctx.stroke();}
+ if([5,23,58,59,60,61].includes(o.skin)){ctx.strokeStyle="#c8ffba";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-20,14);ctx.quadraticCurveTo(0,-12,20,-17);ctx.stroke();ctx.beginPath();ctx.ellipse(-8,4,5,10,-.7,0,Math.PI*2);ctx.ellipse(9,-8,5,10,.7,0,Math.PI*2);ctx.stroke();}
+ if(o.skin===25){ctx.strokeStyle="#f3f6ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,20,-1.1,1.1);ctx.stroke();}
+ if(o.skin===29){ctx.strokeStyle="#f5d59a";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,22,-1.2,1.2);ctx.stroke();}
+ if(o.skin===46){ctx.strokeStyle="#fff1a0";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,21,0,Math.PI*2);ctx.stroke();}
+ if(o.skin===66){ctx.fillStyle="#e9fbff";ctx.beginPath();ctx.arc(0,19,3,0,Math.PI*2);ctx.fill();}
+ if(o.skin===67){ctx.strokeStyle="#bdefff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,19,.2,Math.PI-.2);ctx.stroke();}
+
  // Vampire skin: exactly two visible pointed fangs on the lower mouth.
  if(o.skin===0){
   polygon([[-10,8],[-4,8],[-8,19]],"#ffffff","#6f3560");
@@ -402,7 +419,7 @@ function fireIfNeeded(o,target){
   vy:dy/d*(type==="bow"?7.5:5.2),
   r:5,life:2.1,owner:o,
   type:type==="bow"?"arrow":"magic",
-  damage:Math.max(3,Math.round(s.weaponInfo.damage+abilities[o.ability].damage*.35)),color:s.weaponInfo.color
+  damage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
  });
  addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="bow"?"mũi tên":"đạn phép từ trượng")+"!");
 }
@@ -457,7 +474,7 @@ function checkOrbitWeaponHits(){
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
   const wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;
   if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
-   hitOrb(target,attacker,Math.round(skins[attacker.skin].weaponInfo.damage+abilities[attacker.ability].damage*.35),"orbit");
+   hitOrb(target,attacker,Math.round(skins[attacker.skin].baseDamage+abilities[attacker.ability].damage*.2),"orbit");
   }
  }
 }
