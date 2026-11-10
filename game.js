@@ -93,6 +93,26 @@ const sTier = [
 ];
 sTier.forEach(s=>skins.push({id:s.id,name:s.name,color:s.color,category:"Hạng S",weapon:s.weapon,weaponInfo:{name:s.weaponName,desc:s.desc,damage:s.damage,color:s.weaponColor},trait:"⭐ HẠNG S",maxHP:s.maxHP,baseDamage:s.damage,power:"Hạng S",description:s.desc,projectile:s.projectile,rank:"S"}));
 
+
+const previewOrbs = [
+ {id:105,name:"Độc",color:"#55d83b",weapon:"poisonray",weaponName:"Tia độc xanh",weaponColor:"#8dff55",damage:19,maxHP:118,projectile:"poisonray",category:"Tấn công",trait:"Gai độc và bong bóng độc",desc:"Không cầm vũ khí. Bắn tia độc màu xanh trực tiếp từ tâm quả cầu."},
+ {id:106,name:"Ma Cà Rồng",color:"#a92749",weapon:"fangs",weaponName:"Răng nanh",weaponColor:"#fff3f4",damage:10,maxHP:122,category:"Hút máu",trait:"Hai răng nanh có thể cắn dính đối thủ",desc:"Không cầm vũ khí. Khi áp sát, hai răng nanh cắn dính vào quả cầu địch, hút 10 HP và hồi 10 HP cho mình, sau đó nhả ra."},
+ {id:107,name:"Băng Tinh",color:"#83ddf5",weapon:"sword",weaponName:"Kiếm băng",weaponColor:"#c8f7ff",damage:15,maxHP:130,category:"Phòng thủ",trait:"Tinh thể băng nhô quanh thân",desc:"Quả cầu bọc tinh thể băng xanh, có các mũi pha lê phát sáng."},
+ {id:108,name:"Dung Nham",color:"#ef612c",weapon:"dagger",weaponName:"Dao dung nham",weaponColor:"#ffb04a",damage:18,maxHP:112,category:"Tấn công",trait:"Vết nứt dung nham phát sáng",desc:"Lớp vỏ đá núi lửa với các đường nứt cam đỏ và gai nóng."},
+ {id:109,name:"Thiên Thạch",color:"#776d68",weapon:"staff",weaponName:"Trượng thiên thạch",weaponColor:"#ffd18b",damage:16,maxHP:125,category:"Đặc biệt",trait:"Hố thiên thạch và vòng bụi đá",desc:"Bề mặt đá xám có các hố va chạm và vòng bụi thiên thạch."},
+ {id:110,name:"Bóng Đêm",color:"#58358f",weapon:"dagger",weaponName:"Lưỡi bóng tối",weaponColor:"#c5a2ff",damage:17,maxHP:108,category:"Đặc biệt",trait:"Đôi cánh bóng đêm",desc:"Quả cầu tím đen với hai cánh bóng tối cong ở hai bên."},
+ {id:111,name:"San Hô",color:"#f18ab8",weapon:"water",weaponName:"Lưỡi san hô",weaponColor:"#ffd0e5",damage:13,maxHP:120,category:"Đặc biệt",trait:"Nhánh san hô hồng",desc:"Các nhánh san hô mềm mại và hạt ngọc nhỏ bao quanh quả cầu."},
+ {id:112,name:"Lôi Điện",color:"#f4d94e",weapon:"staff",weaponName:"Trượng sấm",weaponColor:"#fff27c",damage:20,maxHP:105,category:"Điện",trait:"Tia sét vàng chạy quanh thân",desc:"Quả cầu vàng với đường sét zigzag và các tia điện nhỏ."},
+ {id:113,name:"Cơ Giới",color:"#9caebd",weapon:"shield",weaponName:"Khiên cơ khí",weaponColor:"#d9edf7",damage:12,maxHP:142,category:"Phòng thủ",trait:"Vòng kim loại và đinh tán",desc:"Lớp vỏ kim loại, vòng bánh răng và các đinh tán máy móc."},
+ {id:114,name:"Linh Hồn",color:"#c2f2ed",weapon:"staff",weaponName:"Trượng linh hồn",weaponColor:"#e3fff9",damage:14,maxHP:116,category:"Khống chế",trait:"Dải linh khí lơ lửng",desc:"Quả cầu xanh ngọc nhạt với quầng sáng và các dải linh khí bay quanh."}
+];
+previewOrbs.forEach(s=>skins.push({
+ id:s.id,name:s.name,color:s.color,category:s.category,weapon:s.weapon,
+ weaponInfo:{name:s.weaponName,desc:s.desc,damage:s.damage,color:s.weaponColor},
+ trait:s.trait,maxHP:s.maxHP,baseDamage:s.damage,power:s.category,
+ description:s.desc,projectile:s.projectile||null,previewOnly:true
+}));
+
 const abilities = [
  {name:"Hút máu",desc:"Hồi lại một phần HP mỗi khi đánh trúng.",color:"#f36c91",icon:"♥"},
  {name:"Giăng tơ",desc:"Làm chậm tốc độ di chuyển của đối thủ.",color:"#d9dce8",icon:"✳"},
@@ -111,7 +131,7 @@ const abilities = [
  {name:"Không gian",desc:"Tạo xung lực không gian quanh quả cầu.",color:"#ec78d9",icon:"✦"},
  {name:"Phản đòn",desc:"Có cơ hội phản lại một phần sát thương.",color:"#8186a9",icon:"↶"}
 ].map((a,i)=>({ ...a, maxHP:[90,105,95,110,100,125,90,105,95,145,115,85,100,95,100,120][i], damage:[15,10,17,12,18,9,19,13,11,8,10,22,14,12,16,13][i], cooldown:[1.1,1.3,1.0,1.4,1.2,1.5,1.0,1.25,1.4,1.6,1.5,1.0,1.3,0.9,1.2,1.25][i] }));
-const categories = ["✦ Tất cả (105)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
+const categories = ["✦ Tất cả (115)","🔥 Tấn công","✚ Hồi phục","🛡️ Phòng thủ","⚡ Điện","🕸️ Khống chế","💧 Hút máu","🌀 Đặc biệt","⭐ Hạng S (5)"];
 let selected=0, equipped=0, selectedAbility=0, equippedAbility=0, collectionTab="skin", filter="Tất cả", page=0, round=1;
 let playing=true, ended=false, playerHP=100, enemyHP=100, enemySkin=1;
 let player=null, enemy=null, projectiles=[], particles=[], lastFrame=0;
@@ -132,7 +152,7 @@ function makeOrb(x,y,skin,side,abilityId){
 function resetFight(){
  player=makeOrb(140,H/2,equipped,0,equippedAbility);
  enemySkin=Math.floor(Math.random()*skins.length);
- if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
+ if(enemySkin===equipped) enemySkin=(enemySkin+1)%skins.length;
  const enemyAbility=enemySkin%abilities.length;
  enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
  playerHP=skins[player.skin].maxHP;enemyHP=skins[enemy.skin].maxHP;playing=true;ended=false;
@@ -184,7 +204,7 @@ function setCollectionTab(tab){
 }
 function skinMark(id){
  const marks=["♛","✳","ϟ","❄","♨","❧","☾","≈","◷","⬟","✧","♆","☣","〰","✦","◖","●","⚙","☼","☢","♜","❄","♨","❀","◌","▰","✦","⚔","✧","➶","≈","❀","≋","〰","ϟ","♨","☄","◇","◆","◉","◉","◉","▰","⚒","☾","☽","☼","✧","✦","☄","⚙","◎","⌁","▱","◌","☣","✳","☘","❀","✿","☘","♧","♧","♧","✣","〰","◢","◒","◆","●","●","●","●","◈","◉","◉","◌","≈","✧","♜","ϟ","❄","♨","〰","⬟","◌","✥","◈","◐","☘","✹","∞","◉","↶","〰","✧","◎","✹","☼","✦"];
- return ({100:"🔫",101:"☼",102:"🐕",103:"🐡",104:"🎈"})[id]||marks[id]||"●";
+ return ({100:"🔫",101:"☼",102:"🐕",103:"🐡",104:"🎈",105:"☣",106:"🧛",107:"❄",108:"🌋",109:"☄",110:"☾",111:"🪸",112:"ϟ",113:"⚙",114:"✧"})[id]||marks[id]||"●";
 }
 function renderSkins(){
  $("skinTab").classList.toggle("active",collectionTab==="skin");
@@ -194,8 +214,8 @@ function renderSkins(){
  const list=collectionTab==="skin" ? skins.filter(s=>filter==="Tất cả"||s.category===filter) : abilities;
  const pages=Math.max(1,Math.ceil(list.length/20));page=Math.min(page,pages-1);
  $("pageText").textContent=(page+1)+" / "+pages;
- $("skinHeading").textContent=collectionTab==="skin"?"Ngoại hình · 105 quả cầu":"Kỹ năng · 16 chiêu thức";
- $("collectionCount").textContent=collectionTab==="skin"?"(105/105)":"(16/16)";
+ $("skinHeading").textContent=collectionTab==="skin"?"Ngoại hình · "+skins.length+" quả cầu":"Kỹ năng · 16 chiêu thức";
+ $("collectionCount").textContent=collectionTab==="skin"?"("+skins.length+"/"+skins.length+")":"(16/16)";
  const grid=$("skinGrid");grid.innerHTML="";
  list.slice(page*20,page*20+20).forEach((s,i)=>{
   const id=collectionTab==="skin"?s.id:i;
@@ -312,6 +332,53 @@ function drawOrb(o){
  ctx.fillStyle="#17121a";ctx.beginPath();
  ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
  ctx.strokeStyle="#17121a";ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(0,3,7,.2,Math.PI-.2);ctx.stroke();
+ // 10 hinh dang moi cua ban preview.
+ if(o.skin===105){
+  ctx.save();ctx.strokeStyle="#a7ff58";ctx.lineWidth=3;ctx.shadowBlur=9;ctx.shadowColor="#72ff38";
+  for(let k=0;k<5;k++){const a=-Math.PI/2+k*Math.PI/4;ctx.beginPath();ctx.moveTo(Math.cos(a)*(r-3),Math.sin(a)*(r-3));ctx.lineTo(Math.cos(a)*(r+9),Math.sin(a)*(r+9));ctx.stroke();}
+  ctx.shadowBlur=0;ctx.fillStyle="#d8ff8a";for(const p of [[-17,-17],[18,-13],[18,17]]){ctx.beginPath();ctx.arc(p[0],p[1],3,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }
+ if(o.skin===106){
+  const mark=o.biteTarget||(o.side?player:enemy);const face=Math.atan2(mark.y-o.y,mark.x-o.x);
+  ctx.save();ctx.rotate(face);
+  polygon([[r-5,-13],[r+13,-8],[r+4,-1]],"#fff7f5","#7d1630");
+  polygon([[r-5,13],[r+4,1],[r+13,8]],"#fff7f5","#7d1630");ctx.restore();
+ }
+ if(o.skin===107){
+  ctx.save();for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.save();ctx.rotate(a);polygon([[-5,-r+4],[0,-r-12],[5,-r+4]],"#c7f7ff","#ffffff");ctx.restore();}ctx.restore();
+ }
+ if(o.skin===108){
+  ctx.save();ctx.strokeStyle="#ffb047";ctx.lineWidth=3;ctx.shadowBlur=8;ctx.shadowColor="#ff5a20";
+  ctx.beginPath();ctx.moveTo(-24,-13);ctx.lineTo(-10,-3);ctx.lineTo(-15,8);ctx.lineTo(2,2);ctx.lineTo(10,17);ctx.lineTo(22,5);ctx.stroke();ctx.restore();
+ }
+ if(o.skin===109){
+  ctx.save();ctx.strokeStyle="#d1b59f";ctx.lineWidth=3;
+  for(const p of [[-14,-12,5],[15,-8,4],[-4,16,6]]){ctx.beginPath();ctx.arc(p[0],p[1],p[2],0,Math.PI*2);ctx.stroke();}
+  ctx.strokeStyle="#ffc27b";ctx.beginPath();ctx.arc(0,0,r+6,-.7,.8);ctx.stroke();ctx.restore();
+ }
+ if(o.skin===110){
+  ctx.save();polygon([[-r+7,-9],[-r-18,-25],[-r-13,4],[-r-4,17]],"#342052","#a98ae0");
+  polygon([[r-7,-9],[r+18,-25],[r+13,4],[r+4,17]],"#342052","#a98ae0");ctx.restore();
+ }
+ if(o.skin===111){
+  ctx.save();ctx.strokeStyle="#ffcae1";ctx.lineWidth=4;ctx.lineCap="round";
+  for(let k=0;k<5;k++){const x=-18+k*9;ctx.beginPath();ctx.moveTo(x,r-4);ctx.lineTo(x-5,r+7);ctx.moveTo(x,r-4);ctx.lineTo(x+5,r-10);ctx.stroke();}
+  ctx.fillStyle="#fff0f7";for(const p of [[-17,-10],[15,13],[3,-20]]){ctx.beginPath();ctx.arc(p[0],p[1],3,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }
+ if(o.skin===112){
+  ctx.save();ctx.strokeStyle="#fff49b";ctx.lineWidth=4;ctx.shadowBlur=10;ctx.shadowColor="#ffe64d";
+  ctx.beginPath();ctx.moveTo(-r-5,-9);ctx.lineTo(-7,-19);ctx.lineTo(-12,1);ctx.lineTo(5,-6);ctx.lineTo(0,17);ctx.lineTo(r+5,3);ctx.stroke();ctx.restore();
+ }
+ if(o.skin===113){
+  ctx.save();ctx.strokeStyle="#e2f3ff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r+6,0,Math.PI*2);ctx.stroke();
+  for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.fillStyle="#526675";ctx.beginPath();ctx.arc(Math.cos(a)*(r+6),Math.sin(a)*(r+6),3,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }
+ if(o.skin===114){
+  ctx.save();ctx.strokeStyle="#e7fffb";ctx.lineWidth=3;ctx.shadowBlur=12;ctx.shadowColor="#c2fff5";
+  ctx.beginPath();ctx.arc(0,0,r+7,-2.4,2.4);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r+12,.7,2.3);ctx.stroke();
+  ctx.fillStyle="#f2fffc";for(const p of [[-24,-22],[23,-17],[22,21]]){ctx.beginPath();ctx.arc(p[0],p[1],3,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }
+
  // Dau hieu hinh hoc don gian theo chu de, khong anime hoa.
  if(o.skin===1){ctx.strokeStyle="#f4f4f4";ctx.lineWidth=2;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(0,0,12+k*7,-.9,.9);ctx.stroke();}}
  if([2,34,80].includes(o.skin)){ctx.strokeStyle="#fff27a";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-22,18);ctx.lineTo(-5,2);ctx.lineTo(2,14);ctx.lineTo(20,-16);ctx.stroke();}
@@ -334,7 +401,7 @@ function drawOrb(o){
 
  // Weapon attached to orb. Weapons are visual objects; only orb-body contact causes damage.
  if(s.weapon==="shield"||o.skin===25) drawShield(o,Math.atan2((o.side?player.y:enemy.y)-o.y,(o.side?player.x:enemy.x)-o.x));
- if(!["sun","shield","sunbeam","yellowwater","bluewater","it"].includes(s.weapon)){
+ if(!["sun","shield","sunbeam","yellowwater","bluewater","it","poisonray","fangs"].includes(s.weapon)){
   const a=o.weaponAngle,rad=r+21,wx=x+Math.cos(a)*rad,wy=y+Math.sin(a)*rad;
   drawWeapon(s.weapon,wx,wy,a,s.weaponInfo.color);
  }
@@ -395,7 +462,10 @@ function drawWeapon(type,x,y,angle,color){
 }
 function drawProjectile(p){
  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));ctx.scale(2,2);
- if(p.type==="it"){ctx.shadowBlur=22;ctx.shadowColor="#ff315e";ctx.fillStyle="#ff466d";ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffb5c5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.stroke();}
+ if(p.type==="poisonray"){
+  ctx.shadowBlur=24;ctx.shadowColor="#65ff42";ctx.fillStyle="#7dff48";
+  ctx.fillRect(-18,-4,36,8);ctx.fillStyle="#e5ffd1";ctx.fillRect(-15,-1,30,2);
+ }else if(p.type==="it"){ctx.shadowBlur=22;ctx.shadowColor="#ff315e";ctx.fillStyle="#ff466d";ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ffb5c5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.stroke();}
  else if(p.type==="yellowwater"||p.type==="bluewater"){ctx.shadowBlur=17;ctx.shadowColor=p.color;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffffffaa";ctx.beginPath();ctx.arc(-2,-2,2,0,Math.PI*2);ctx.fill();}
  else if(p.type==="arrow"){
   ctx.strokeStyle="#fff0bb";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(8,0);ctx.stroke();
@@ -454,6 +524,9 @@ function moveOrb(o,dt){
   }
  }
 function separateOrbs(){
+ if((player&&player.biteTarget===enemy)||(enemy&&enemy.biteTarget===player)){
+  clampOrbToArena(player);clampOrbToArena(enemy);return;
+ }
   const dx=enemy.x-player.x,dy=enemy.y-player.y,d=Math.hypot(dx,dy)||1,min=player.r+enemy.r;
   if(d<min){
    const nx=dx/d,ny=dy/d,overlap=(min-d)/2+1;
@@ -475,16 +548,16 @@ function separateOrbs(){
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
- if(!["bow","staff","gun","sunbeam","yellowwater","bluewater","it"].includes(type))return;
- let cooldown=type==="gun"?0.85:type==="sunbeam"?0.95:type==="yellowwater"?1.05:type==="bluewater"?1.15:type==="it"?1.25:abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
+ if(!["bow","staff","gun","sunbeam","yellowwater","bluewater","it","poisonray"].includes(type))return;
+ let cooldown=type==="poisonray"?1.15:type==="gun"?0.85:type==="sunbeam"?0.95:type==="yellowwater"?1.05:type==="bluewater"?1.15:type==="it"?1.25:abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
  if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
  projectiles.push({
-  x:o.x+dx/d*(o.r+8),y:o.y+dy/d*(o.r+8),
-  vx:dx/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
-  vy:dy/d*(type==="bow"?7.5:type==="gun"?8.2:6.1),
-  r:type==="it"?16:12,life:2.1,owner:o,
+  x:o.x+dx/d*(type==="poisonray"?0:o.r+8),y:o.y+dy/d*(type==="poisonray"?0:o.r+8),
+  vx:dx/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:6.1),
+  vy:dy/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:6.1),
+  r:type==="it"?16:type==="poisonray"?9:12,life:2.1,owner:o,
   type:type==="bow"?"arrow":(s.projectile||"magic"),
   damage:s.rank==="S"?s.baseDamage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
  });
@@ -521,6 +594,42 @@ function hitOrb(target,attacker,damage,type){
   updateUI();
  }
 }
+function updateVampireBites(dt){
+ for(const attacker of [player,enemy]){
+  const target=attacker===player?enemy:player;
+  attacker.biteCooldown=Math.max(0,(attacker.biteCooldown||0)-dt);
+  if(attacker.skin!==106)continue;
+  if(attacker.biteTarget){
+   if(attacker.biteTarget!==target||attacker.biteTimer<=0){attacker.biteTarget=null;continue;}
+   attacker.biteTimer-=dt;
+   attacker.x=target.x+attacker.biteDirX*(target.r+attacker.r-7);
+   attacker.y=target.y+attacker.biteDirY*(target.r+attacker.r-7);
+   attacker.vx=target.vx;attacker.vy=target.vy;
+   if(attacker.biteTimer<=0){
+    attacker.biteTarget=null;attacker.biteCooldown=2.1;
+    addLog(attacker===player?"player":"enemy","🧛 Ma Cà Rồng nhả đối thủ!");
+   }
+   continue;
+  }
+  if(attacker.biteCooldown>0)continue;
+  const dx=attacker.x-target.x,dy=attacker.y-target.y,d=Math.hypot(dx,dy)||1;
+  if(d<=attacker.r+target.r+16){
+   attacker.biteTarget=target;attacker.biteTimer=.8;
+   attacker.biteDirX=dx/d;attacker.biteDirY=dy/d;
+   if(target===player)playerHP=Math.max(0,playerHP-10);else enemyHP=Math.max(0,enemyHP-10);
+   if(attacker===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+10);
+   else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+10);
+   burst(target.x,target.y,"#ff5278",12);
+   addLog(attacker===player?"player":"enemy","🧛 Cắn dính mục tiêu, hút 10 HP rồi chuẩn bị nhả!");
+   updateUI();
+   if(playerHP<=0||enemyHP<=0){
+    ended=true;playing=false;
+    addLog("system",enemyHP<=0?"🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":"💥 BẠN ĐÃ THUA ROUND "+round+"!");
+    updateUI();
+   }
+  }
+ }
+}
 function pointSegmentDistance(px,py,x1,y1,x2,y2){
  const dx=x2-x1,dy=y2-y1,len2=dx*dx+dy*dy;
  const t=len2?Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/len2)):0;
@@ -529,7 +638,7 @@ function pointSegmentDistance(px,py,x1,y1,x2,y2){
 }
 function getWeaponSegment(o){
  const type=skins[o.skin].weapon;
- if(["sun","shield","sunbeam","yellowwater","bluewater","it",""].includes(type))return null;
+ if(["sun","shield","sunbeam","yellowwater","bluewater","it","fangs","poisonray",""].includes(type))return null;
  const a=o.weaponAngle;
  return {
   x1:o.x+Math.cos(a)*(o.r+4),
@@ -609,7 +718,7 @@ function checkOrbitWeaponHits(){
  for(const attacker of [player,enemy]){
   if(!attacker||attacker.hitCooldown>0)continue;
   const type=skins[attacker.skin].weapon;
-  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield"].includes(type))continue;
+  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield","fangs","poisonray"].includes(type))continue;
   const target=attacker===player?enemy:player;
   const radius=attacker.r+24;
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
@@ -637,7 +746,7 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();checkWeaponClashes();
+  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();updateVampireBites(dt);checkWeaponClashes();
   // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
   clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
