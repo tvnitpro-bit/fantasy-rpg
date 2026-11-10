@@ -410,12 +410,15 @@ function hitOrb(target,attacker,damage,type){
  if(shieldBlocks(target,attacker))return;
  target.hitCooldown=.34;target.flash=.22;
  const isPlayerTarget=target===player;
+ const attackerAbility=abilities[attacker.ability];
+ if(attacker.ability===11)damage=Math.round(damage*1.2);
+ if(target.ability===9)damage=Math.max(1,Math.round(damage*.78));
  if(isPlayerTarget)playerHP=Math.max(0,playerHP-damage);
  else enemyHP=Math.max(0,enemyHP-damage);
- if(attacker.skin===0){
-  if(attacker===player)playerHP=Math.min(100,playerHP+damage*.22);
-  else enemyHP=Math.min(100,enemyHP+damage*.22);
-  addLog(attacker===player?"player":"enemy","Ma Cà Rồng hút lại một phần HP!");
+ if(attacker.ability===0){
+  if(attacker===player)playerHP=Math.min(attackerAbility.maxHP,playerHP+damage*.25);
+  else enemyHP=Math.min(attackerAbility.maxHP,enemyHP+damage*.25);
+  addLog(attacker===player?"player":"enemy","♥ Hút máu hồi lại HP!");
  }
  burst(target.x,target.y,type==="sunbeam"?"#ffe57a":type==="arrow"?"#e9f2ff":"#ffffff",10);
  addLog(attacker===player?"player":"enemy",skins[attacker.skin].name+" đánh trúng thân quả cầu, gây "+damage+" sát thương!");
