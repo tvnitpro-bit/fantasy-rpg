@@ -263,16 +263,27 @@ function drawProjectile(p){
  }
  ctx.restore();
 }
+function clampOrbToArena(o){
+ // Luon lay kich thuoc canvas that, khong phu thuoc kich thuoc CSS/responsive.
+ const w=canvas.width,h=canvas.height,pad=o.r+3;
+ const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
+ if(!Number.isFinite(o.x)||!Number.isFinite(o.y)){
+  o.x=o.side?w-pad:pad;o.y=h/2;o.vx=o.side?-2.6:2.6;o.vy=0;
+ }
+ if(o.x<minX){o.x=minX;o.vx=Math.abs(o.vx)||2.2;}
+ if(o.x>maxX){o.x=maxX;o.vx=-Math.abs(o.vx)||-2.2;}
+ if(o.y<minY){o.y=minY;o.vy=Math.abs(o.vy)||2.2;}
+ if(o.y>maxY){o.y=maxY;o.vy=-Math.abs(o.vy)||-2.2;}
+ // Chot chan toa do sau moi lan cap nhat, ke ca sau va cham.
+ o.x=Math.max(minX,Math.min(maxX,o.x));
+ o.y=Math.max(minY,Math.min(maxY,o.y));
+}
 function moveOrb(o,dt){
  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
- // Toc do di chuyen x2, gioi han va cham theo kich thuoc san de cau khong the bay ra ngoai.
+ // Toc do x2, va dap vao tuong theo ban kinh that cua qua cau.
  o.x+=o.vx*dt*120;o.y+=o.vy*dt*120;
- const minX=o.r+2,maxX=W-o.r-2,minY=o.r+2,maxY=H-o.r-2;
- if(o.x<minX){o.x=minX;o.vx=Math.abs(o.vx);}
- if(o.x>maxX){o.x=maxX;o.vx=-Math.abs(o.vx);}
- if(o.y<minY){o.y=minY;o.vy=Math.abs(o.vy);}
- if(o.y>maxY){o.y=maxY;o.vy=-Math.abs(o.vy);}
+ clampOrbToArena(o);
  const speed=Math.hypot(o.vx,o.vy);
  if(speed>4.5){o.vx=o.vx/speed*4.5;o.vy=o.vy/speed*4.5;}
  if(speed<1.2){o.vx+=o.side?-.2:.2;o.vy+=(Math.random()-.5)*.3;}
@@ -287,6 +298,8 @@ function separateOrbs(){
   enemy.vx=nx*2.8;enemy.vy=ny*2.8;
   // Important: orb-to-orb collision is only a physical bounce, never HP damage.
  }
+ // Va cham giua hai qua cau co the day toa do; kep lai ca hai ngay sau do.
+ clampOrbToArena(player);clampOrbToArena(enemy);
 }
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
@@ -377,6 +390,8 @@ function frame(now){
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
   moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();
+  // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
+  clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
   updateProjectiles(dt);checkOrbitWeaponHits();
  }
