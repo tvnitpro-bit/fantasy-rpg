@@ -537,7 +537,7 @@ function frame(now){
  ctx.clearRect(0,0,W,H);
  ctx.strokeStyle="#30303a";ctx.lineWidth=3;ctx.strokeRect(2,2,W-4,H-4);
  if(playing&&!ended){
-  moveOrb(player,dt);moveOrb(enemy,dt);separateOrbs();
+  moveOrb(player,dt,enemy);moveOrb(enemy,dt,player);separateOrbs();
   // Lop bao ve cuoi cung truoc khi ve frame: khong qua cau nao duoc nam ngoai san.
   clampOrbToArena(player);clampOrbToArena(enemy);
   fireIfNeeded(player,enemy);fireIfNeeded(enemy,player);
