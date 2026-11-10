@@ -186,6 +186,8 @@ function polygon(points,fill,stroke){
  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
 }
 function drawOrb(o){
+ // Chot lan cuoi ngay truoc khi ve de khong frame nao hien cau bi cat khoi san.
+ clampOrbToArena(o);
  const s=skins[o.skin],x=o.x,y=o.y,r=o.r;
  ctx.save();ctx.translate(x,y);
  // Minimal identifying features only: shark fin, vampire fangs, warrior shield.
