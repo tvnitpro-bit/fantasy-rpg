@@ -45,6 +45,10 @@ button:active{transform:scale(.97)}
 .skin-heading span{color:#ccc;font-size:14px}
 .skin-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px}
 .categories,.collection,.detail{background:#08090d;border:2px solid #eee;border-radius:15px;padding:10px;min-width:0}
+.collection-tabs{display:flex;gap:8px;margin:0 0 10px}
+.collection-tabs button{flex:1;background:#141522;border:1px solid #5d5878}
+.collection-tabs button.active{background:linear-gradient(120deg,#6949b7,#a34b9d);border-color:#f18bd0;box-shadow:0 0 10px #d86ab477}
+.categories{display:flex;flex-direction:column;gap:0}
 .categories button{display:block;width:100%;padding:12px 7px;margin-bottom:7px;text-align:left;font-size:13px;border-radius:10px;border:2px solid transparent;background:#101116}
 .categories button.active{border-color:#f276bd;box-shadow:0 0 12px #f276bd88;background:#281b2a}
 .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
@@ -85,7 +89,7 @@ button:active{transform:scale(.97)}
 <body>
 <header>
 <h1>✦ CIRCLE BATTLE ✦</h1>
-<p>100 ORB SKINS · AUTO BATTLE · SPEED x3</p>
+<p>100 NGOẠI HÌNH · 16 KỸ NĂNG RIÊNG · AUTO BATTLE</p>
 </header>
 
 <main>
@@ -153,10 +157,8 @@ button:active{transform:scale(.97)}
     <span id="detailWeapon">Kiếm, cung, gậy phép hoặc năng lực đặc biệt.</span>
    </div>
    <div class="detail-box">
-    <strong>Chỉ số cơ bản:</strong>
-    HP: 100<br>
-    Sát thương: 10<br>
-    Hồi chiêu: 1 giây
+    <strong>Chỉ số riêng:</strong>
+    <span id="detailStats">Mỗi kỹ năng có HP, sát thương và hồi chiêu riêng.</span>
    </div>
    <button onclick="equipSkin()">Trang bị!</button>
    <p class="equipped" id="equipMessage">Skin đang chọn</p>
