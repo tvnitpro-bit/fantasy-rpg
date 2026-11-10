@@ -291,6 +291,11 @@ function drawOrb(o){
  ctx.fillStyle="#17121a";ctx.beginPath();
  ctx.arc(-9,-5,3,0,Math.PI*2);ctx.arc(9,-5,3,0,Math.PI*2);ctx.fill();
  ctx.strokeStyle="#17121a";ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(0,3,7,.2,Math.PI-.2);ctx.stroke();
+ // Vampire skin: exactly two visible pointed fangs on the lower mouth.
+ if(o.skin===0){
+  polygon([[-10,8],[-4,8],[-8,19]],"#ffffff","#6f3560");
+  polygon([[4,8],[10,8],[8,19]],"#ffffff","#6f3560");
+ }
  if(o.flash>0){ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r+3,0,Math.PI*2);ctx.stroke();}
  ctx.restore();
 
@@ -358,10 +363,12 @@ function clampOrbToArena(o){
  o.y=Math.max(minY,Math.min(maxY,o.y));
 }
 function moveOrb(o,dt){
+ const ability=abilities[o.ability];
  o.weaponAngle+=dt*(skins[o.skin].weapon==="dagger"?4.2:skins[o.skin].weapon==="sword"?3.2:2.7);
  o.weaponCooldown-=dt;o.hitCooldown-=dt;o.shieldCooldown-=dt;o.flash=Math.max(0,o.flash-dt*3);
  // Toc do x2, va dap vao tuong theo ban kinh that cua qua cau.
- o.x+=o.vx*dt*120;o.y+=o.vy*dt*120;
+ const speedBonus=o.ability===13?1.25:1;
+ o.x+=o.vx*dt*120*speedBonus;o.y+=o.vy*dt*120*speedBonus;
  clampOrbToArena(o);
  const speed=Math.hypot(o.vx,o.vy);
  if(speed>4.5){o.vx=o.vx/speed*4.5;o.vy=o.vy/speed*4.5;}
@@ -384,7 +391,7 @@ function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
  if(type!=="bow"&&type!=="staff")return;
- let cooldown=type==="bow"?1.45:1.8;
+ let cooldown=abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
  if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
