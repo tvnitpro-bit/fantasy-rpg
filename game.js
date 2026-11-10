@@ -581,7 +581,7 @@ function moveOrb(o,dt){
    o.turnTimer=.65+Math.random()*1.25;
   }
   const speedBonus=o.ability===13?1.18:1;
-  if(o.ability===22){o.regenTimer-=dt;if(o.regenTimer<=0){if(o===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+1);else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+1);o.regenTimer=1.2;}}
+  if(o.ability===22){o.regenTimer-=dt;if(o.regenTimer<=0){setHP(o,getHP(o)+1);o.regenTimer=1.2;}}
   o.x+=o.vx*dt*90*speedBonus*(o.slowTimer>0?.55:1);o.y+=o.vy*dt*90*speedBonus*(o.slowTimer>0?.55:1);
   clampOrbToArena(o);
   const speed=Math.hypot(o.vx,o.vy);
@@ -614,20 +614,21 @@ function separateOrbs(){
   clampOrbToArena(player);clampOrbToArena(enemy);
  }
 function fireIfNeeded(o,target){
+ if(!o||o.basicNPC||!target)return;
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
- if(!["bow","staff","gun","sunbeam","yellowwater","bluewater","it","poisonray"].includes(type))return;
- let cooldown=type==="poisonray"?1.15:type==="gun"?0.85:type==="sunbeam"?0.95:type==="yellowwater"?1.05:type==="bluewater"?1.15:type==="it"?1.25:abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
+ if(!["bow","staff","gun","sunbeam","yellowwater","bluewater","it","poisonray","hopebolt","firebolt","icebolt","lightning","windshot","shadowbolt","waterbolt","arcanebolt","petalshot","ghostshot","sandshot","lightshot","poisonmist","prismshot","meteor"].includes(type))return;
+ let cooldown=type==="poisonray"?1.15:type==="gun"?0.85:type==="sunbeam"?0.95:type==="yellowwater"?1.05:type==="bluewater"?1.15:type==="it"?1.25:type==="hopebolt"?1.0:(abilities[o.ability]?.cooldown||1.15);
  if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
  projectiles.push({
   x:o.x+dx/d*(type==="poisonray"?0:o.r+8),y:o.y+dy/d*(type==="poisonray"?0:o.r+8),
-  vx:dx/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:6.1),
-  vy:dy/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:6.1),
-  r:type==="it"?16:type==="poisonray"?9:12,life:2.1,owner:o,
-  type:type==="bow"?"arrow":(s.projectile||"magic"),
-  damage:s.rank==="S"?s.baseDamage:Math.max(3,Math.round(s.baseDamage+abilities[o.ability].damage*.2)),color:s.weaponInfo.color
+  vx:dx/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:type==="hopebolt"?6.8:6.1),
+  vy:dy/d*(type==="poisonray"?7.4:type==="bow"?7.5:type==="gun"?8.2:type==="hopebolt"?6.8:6.1),
+  r:type==="it"?16:type==="poisonray"?9:12,life:2.4,owner:o,bounces:0,
+  type:type==="bow"?"arrow":type==="hopebolt"?"hopebounce":(s.projectile||"magic"),
+  damage:s.rank==="S"||s.id>=116?s.baseDamage:Math.max(3,Math.round(s.baseDamage+(abilities[o.ability]?.damage||0)*.2)),color:s.weaponInfo.color
  });
  addLog(o===player?"player":"enemy",s.name+" phóng "+(s.rank==="S"?s.weaponInfo.name:(type==="bow"?"mũi tên":"đạn phép"))+" · "+s.baseDamage+" DMG!");
 }
@@ -648,14 +649,22 @@ function hitOrb(target,attacker,damage,type){
  if(target.ability===9||target.ability===24)damage=Math.max(1,Math.round(damage*.78));
  if(target.ability===24)damage=Math.max(1,Math.round(damage*.82));
  if(target.ability===25&&target.spiritCooldown<=0&&Math.random()<.18){target.spiritCooldown=3;target.flash=.5;burst(target.x,target.y,"#d9fff7",12);addLog(isPlayerTarget?"player":"enemy","✧ Linh hồn né đòn!");return;}
- if(isPlayerTarget)playerHP=Math.max(0,playerHP-damage);
- else enemyHP=Math.max(0,enemyHP-damage);
+ if(isPlayerTarget)setHP(target,playerHP-damage);else setHP(target,getHP(target)-damage);
+ if(type==="orbit"&&["dagger","sword","water"].includes(skins[attacker.skin].weapon))attacker.weaponSpin=-(attacker.weaponSpin||1);
  if(attacker.ability===0||attacker.ability===17){
   if(attacker===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+damage*.25);
   else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+damage*.25);
   addLog(attacker===player?"player":"enemy","♥ Hút máu hồi HP!");
  }
  if(attacker.ability===16)target.poisonTimer=2.4;
+ if(attacker.skin>=116){const sp=skins[attacker.skin].special;
+  if(["burn","lava","phoenix","dragon"].includes(sp))target.burnTimer=3;
+  if(["freeze","water","frost","sand","root"].includes(sp))target.slowTimer=2.2;
+  if(sp==="shock")setHP(target,getHP(target)-3);
+  if(sp==="shadow")setHP(attacker,getHP(attacker)+3);
+  if(sp==="wind"){target.vx+=Math.sign(target.x-attacker.x)*.8;target.vy+=(Math.random()-.5)*.6;}
+  if(sp==="sting"||sp==="toxic")target.poisonTimer=3;
+ }
  if(attacker.ability===18)target.slowTimer=1.8;
  if(attacker.ability===19)target.burnTimer=2.4;
  if(attacker.ability===20){if(isPlayerTarget)enemyHP=Math.max(0,enemyHP-6);else playerHP=Math.max(0,playerHP-6);burst(target.x,target.y,"#ffbd72",14);}
@@ -665,21 +674,18 @@ function hitOrb(target,attacker,damage,type){
  burst(target.x,target.y,type==="sunbeam"?"#ffe57a":type==="arrow"?"#e9f2ff":"#ffffff",10);
  addLog(attacker===player?"player":"enemy",skins[attacker.skin].name+" đánh trúng thân quả cầu, gây "+damage+" sát thương!");
  updateUI();
- if(playerHP<=0||enemyHP<=0){
-  ended=true;playing=false;
-  addLog("system",enemyHP<=0?"🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":"💥 BẠN ĐÃ THUA ROUND "+round+"!");
-  updateUI();
- }
+ checkBattleEnd();
 }
-function updateAbilityEffects(dt){for(const t of [player,enemy]){if(!t)continue;t.spiritCooldown=Math.max(0,(t.spiritCooldown||0)-dt);for(const k of ["poisonTimer","burnTimer"]){if(t[k]>0){t[k]-=dt;t[k+"_tick"]=(t[k+"_tick"]||0)-dt;if(t[k+"_tick"]<=0){if(t===player)playerHP=Math.max(0,playerHP-2);else enemyHP=Math.max(0,enemyHP-2);t[k+"_tick"]=.6;burst(t.x,t.y,k==="poisonTimer"?"#75e64c":"#ff8b30",3);}}}t.slowTimer=Math.max(0,(t.slowTimer||0)-dt);if(t.ability===22){t.regenTimer-=dt;if(t.regenTimer<=0){if(t===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+1);else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+1);t.regenTimer=1.2;}}}}
+function updateAbilityEffects(dt){for(const t of [player,...activeOpponents()]){if(!t)continue;t.spiritCooldown=Math.max(0,(t.spiritCooldown||0)-dt);for(const k of ["poisonTimer","burnTimer"]){if(t[k]>0){t[k]-=dt;t[k+"_tick"]=(t[k+"_tick"]||0)-dt;if(t[k+"_tick"]<=0){setHP(t,getHP(t)-2);t[k+"_tick"]=.6;burst(t.x,t.y,k==="poisonTimer"?"#75e64c":"#ff8b30",3);}}}t.slowTimer=Math.max(0,(t.slowTimer||0)-dt);if(t.ability===22){t.regenTimer-=dt;if(t.regenTimer<=0){setHP(t,getHP(t)+1);t.regenTimer=1.2;}}}checkBattleEnd();}
 function updateVampireBites(dt){
- for(const attacker of [player,enemy]){
-  const target=attacker===player?enemy:player;
+ for(const attacker of [player,...activeOpponents()]){
+  const target=nearestTarget(attacker);if(!target)continue;
   attacker.biteCooldown=Math.max(0,(attacker.biteCooldown||0)-dt);
   if(attacker.skin!==106)continue;
   if(attacker.biteTarget){
    if(attacker.biteTarget!==target||attacker.biteTimer<=0){attacker.biteTarget=null;continue;}
-   attacker.biteTimer-=dt;
+   attacker.biteTimer-=dt;attacker.biteTick=(attacker.biteTick||0)-dt;
+   if(attacker.biteTick<=0){setHP(target,getHP(target)-3);setHP(attacker,getHP(attacker)+3);attacker.biteTick=1;updateUI();}
    attacker.x=target.x+attacker.biteDirX*(target.r+attacker.r-7);
    attacker.y=target.y+attacker.biteDirY*(target.r+attacker.r-7);
    attacker.vx=target.vx;attacker.vy=target.vy;
@@ -692,19 +698,13 @@ function updateVampireBites(dt){
   if(attacker.biteCooldown>0)continue;
   const dx=attacker.x-target.x,dy=attacker.y-target.y,d=Math.hypot(dx,dy)||1;
   if(d<=attacker.r+target.r+16){
-   attacker.biteTarget=target;attacker.biteTimer=.8;
+   attacker.biteTarget=target;attacker.biteTimer=5;attacker.biteTick=1;
    attacker.biteDirX=dx/d;attacker.biteDirY=dy/d;
-   if(target===player)playerHP=Math.max(0,playerHP-10);else enemyHP=Math.max(0,enemyHP-10);
-   if(attacker===player)playerHP=Math.min(skins[player.skin].maxHP,playerHP+10);
-   else enemyHP=Math.min(skins[enemy.skin].maxHP,enemyHP+10);
+   setHP(target,getHP(target)-3);setHP(attacker,getHP(attacker)+3);
    burst(target.x,target.y,"#ff5278",12);
-   addLog(attacker===player?"player":"enemy","🧛 Cắn dính mục tiêu, hút 10 HP rồi chuẩn bị nhả!");
+   addLog(attacker===player?"player":"enemy","🧛 Bám dính 5 giây, hút 3 HP mỗi giây!");
    updateUI();
-   if(playerHP<=0||enemyHP<=0){
-    ended=true;playing=false;
-    addLog("system",enemyHP<=0?"🏆 BẠN CHIẾN THẮNG ROUND "+round+"!":"💥 BẠN ĐÃ THUA ROUND "+round+"!");
-    updateUI();
-   }
+   checkBattleEnd();
   }
  }
 }
@@ -778,7 +778,8 @@ function updateProjectiles(dt){
  for(let i=projectiles.length-1;i>=0;i--){
   const p=projectiles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;
   if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
-  const target=p.owner===player?enemy:player;
+  if(p.type==="hopebounce"&&p.bounces===0&&p.y>=H-p.r-1){p.y=H-p.r-1;p.vy=-Math.abs(p.vy);p.bounces=1;burst(p.x,p.y,"#65ff58",8);}
+  const target=nearestTarget(p.owner);if(!target){projectiles.splice(i,1);continue;}
   // The defender's rotating weapon or shield can intercept an incoming projectile.
   if(weaponBlocksProjectile(target,p)){
    burst(p.x,p.y,"#dff6ff",7);
@@ -792,17 +793,12 @@ function updateProjectiles(dt){
  }
 }
 function checkOrbitWeaponHits(){
- for(const attacker of [player,enemy]){
-  if(!attacker||attacker.hitCooldown>0)continue;
+ for(const attacker of [player,...activeOpponents()]){
+  if(!attacker||attacker.basicNPC||attacker.hitCooldown>0)continue;
   const type=skins[attacker.skin].weapon;
-  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield","fangs","poisonray","web"].includes(type))continue;
-  const target=attacker===player?enemy:player;
-  const radius=attacker.r+24;
-  const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
-  const wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;
-  if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
-   hitOrb(target,attacker,Math.round(skins[attacker.skin].baseDamage+abilities[attacker.ability].damage*.2),"orbit");
-  }
+  if(["sun","sunbeam","yellowwater","bluewater","it","gun","bow","staff","shield","fangs","poisonray","web","hopebolt","firebolt","icebolt","lightning","windshot","shadowbolt","waterbolt","arcanebolt","petalshot","ghostshot","sandshot","lightshot","poisonmist","prismshot","meteor"].includes(type))continue;
+  const targets=attacker===player?activeOpponents():[player];
+  for(const target of targets){const radius=attacker.r+24,wx=attacker.x+Math.cos(attacker.weaponAngle)*radius,wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){hitOrb(target,attacker,Math.round(skins[attacker.skin].baseDamage+(abilities[attacker.ability]?.damage||0)*.2),"orbit");break;}}
  }
 }
 function updateSpiderTraps(dt){
