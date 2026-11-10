@@ -32,16 +32,10 @@ const categoryById = id => {
 };
 
 const weaponById = id => {
- if (id === 0) return "dagger";
- if (id === 25) return "sword";
- if (id === 27) return "sword";
- if (id === 28) return "staff";
- if (id === 29) return "bow";
- if (id === 46) return "sun";
- if (id === 66) return "water";
- if (id === 9 || id === 43) return "shield";
- const pool = ["dagger","sword","staff","bow"];
- return pool[id % pool.length];
+ const signature={0:"dagger",2:"spear",3:"staff",4:"club",9:"shield",25:"shield",26:"dagger",27:"sword",28:"staff",29:"bow",35:"club",43:"sword",46:"sun",54:"staff",66:"water",67:"shield",72:"spear",73:"bow",80:"spear",82:"sun",90:"sword",91:"shield",92:"staff",93:"sword",94:"bow",95:"spear",96:"staff",97:"sun",98:"sun",99:"sword"};
+ if(signature[id])return signature[id];
+ const pool=["dagger","sword","spear","club","staff","bow"];
+ return pool[(id*7+Math.floor(id/6))%pool.length];
 };
 
 const weaponInfo = {
@@ -51,7 +45,9 @@ const weaponInfo = {
  bow:{name:"Cung",desc:"Cung đi theo quỹ đạo quanh quả cầu và bắn mũi tên năng lượng về phía mục tiêu.",damage:10,color:"#9affbd"},
  sun:{name:"Tia sáng",desc:"Quả cầu Ánh Dương bắn tia sáng vàng trực tiếp về phía đối thủ.",damage:12,color:"#ffe57a"},
  water:{name:"Lưỡi nước",desc:"Cá Mập có vây cá mập đơn giản và lưỡi nước xoay quanh quả cầu.",damage:10,color:"#7ceaff"},
- shield:{name:"Khiên",desc:"Khiên đi bên cạnh quả cầu, chặn một đòn rồi cần thời gian hồi lại.",damage:5,color:"#d6e0ef"}
+ shield:{name:"Khiên",desc:"Khiên đi bên cạnh quả cầu, chặn một đòn rồi cần thời gian hồi lại.",damage:4,color:"#d6e0ef"},
+ club:{name:"Chùy",desc:"Chùy nặng xoay quanh quả cầu; chỉ gây sát thương khi chạm thân đối thủ.",damage:15,color:"#e7b56f"},
+ spear:{name:"Thương",desc:"Thương dài xoay quanh quả cầu; chỉ mũi thương chạm thân đối thủ mới gây sát thương.",damage:12,color:"#dce9f7"}
 };
 
 const powers = [
@@ -64,6 +60,8 @@ const powers = [
 
 const skins = names.map((name,id) => {
  const weapon = weaponById(id);
+ const statHP=Math.round(82+((id*17)%49));
+ const statDamage=Math.round(8+((id*11)%17));
  let trait = "";
  if (id === 0) trait = "Hai răng nanh nhọn";
  if (id === 25) trait = "Khiên chiến binh";
@@ -72,6 +70,8 @@ const skins = names.map((name,id) => {
  return {
   id,name,color:colors[id%colors.length],category:categoryById(id),
   weapon,weaponInfo:weaponInfo[weapon],trait,
+  maxHP:id===25?148:id===0?96:id===46?88:id===66?118:statHP,
+  damage:id===25?12:id===0?16:id===46?22:id===66?15:statDamage,
   power:categoryById(id),
   description: id===0 ? "Có đúng hai răng nanh nhỏ ở phần dưới quả cầu; hút lại một phần HP khi đánh trúng." :
     id===25 ? "Có một chiếc khiên bên cạnh quả cầu. Khiên chặn đòn định kỳ." :
@@ -123,7 +123,7 @@ function resetFight(){
  if(enemySkin===equipped) enemySkin=(enemySkin+1)%100;
  const enemyAbility=enemySkin%abilities.length;
  enemy=makeOrb(W-140,H/2,enemySkin,1,enemyAbility);
- playerHP=abilities[player.ability].maxHP;enemyHP=abilities[enemy.ability].maxHP;playing=true;ended=false;
+ playerHP=skins[player.skin].maxHP;enemyHP=skins[enemy.skin].maxHP;playing=true;ended=false;
  projectiles=[]; particles=[];
  updateUI();
  $("log").innerHTML="";
@@ -145,10 +145,10 @@ function updateUI(){
  $("playerIcon").textContent="●";$("playerIcon").style.color=p.color;
  $("enemyIcon").textContent="●";$("enemyIcon").style.color=e.color;
  $("playerName").textContent=p.name;$("enemyName").textContent=e.name;
- const pMax=abilities[player?player.ability:equippedAbility].maxHP;
- const eMax=abilities[enemy?enemy.ability:enemySkin%abilities.length].maxHP;
- $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+abilities[player?player.ability:equippedAbility].damage;
- $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+abilities[enemy?enemy.ability:enemySkin%abilities.length].damage;
+ const pMax=skins[player?player.skin:equipped].maxHP;
+ const eMax=skins[enemy?enemy.skin:enemySkin].maxHP;
+ $("playerHP").textContent="HP: "+Math.ceil(playerHP)+" / "+pMax+" · DMG "+skins[player?player.skin:equipped].damage+abilities[player?player.ability:equippedAbility].damage*.25;
+ $("enemyHP").textContent="HP: "+Math.ceil(enemyHP)+" / "+eMax+" · DMG "+skins[enemy?enemy.skin:enemySkin].damage+abilities[enemy?enemy.ability:enemySkin%abilities.length].damage*.25;
  $("playerBar").style.width=Math.max(0,playerHP/pMax*100)+"%";
  $("enemyBar").style.width=Math.max(0,enemyHP/eMax*100)+"%";
  $("roundText").textContent="ROUND "+round+" · "+(ended?"KẾT THÚC":"ĐANG CHIẾN ĐẤU");
@@ -331,6 +331,12 @@ function drawWeapon(type,x,y,angle,color){
  }else if(type==="staff"){
   ctx.strokeStyle="#d7c1ff";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,10);ctx.lineTo(0,-17);ctx.stroke();
   ctx.fillStyle="#d39aff";ctx.beginPath();ctx.arc(0,-20,5,0,Math.PI*2);ctx.fill();
+ }else if(type==="club"){
+  ctx.fillStyle="#b88b56";ctx.fillRect(-3,-4,6,17);
+  ctx.fillStyle="#d9dce8";ctx.beginPath();ctx.arc(0,-8,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.stroke();
+ }else if(type==="spear"){
+  ctx.strokeStyle="#b88b56";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,12);ctx.lineTo(0,-18);ctx.stroke();
+  polygon([[-5,-15],[0,-27],[5,-15]],"#dce9f7","#fff");
  }else if(type==="bow"){
   ctx.strokeStyle="#d8bd8c";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,13,-1.2,1.2);ctx.stroke();
   ctx.strokeStyle="#fff";ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(4,-12);ctx.lineTo(4,12);ctx.stroke();
@@ -350,7 +356,7 @@ function drawProjectile(p){
 }
 function clampOrbToArena(o){
  // Luon lay kich thuoc canvas that, khong phu thuoc kich thuoc CSS/responsive.
- const w=canvas.width,h=canvas.height,pad=o.r+3;
+ const w=canvas.width,h=canvas.height,pad=o.r+47;
  const minX=pad,maxX=w-pad,minY=pad,maxY=h-pad;
  if(!Number.isFinite(o.x)||!Number.isFinite(o.y)){
   o.x=o.side?w-pad:pad;o.y=h/2;o.vx=o.side?-2.6:2.6;o.vy=0;
@@ -391,20 +397,20 @@ function separateOrbs(){
 function fireIfNeeded(o,target){
  const s=skins[o.skin],type=s.weapon;
  // Chi CUNG va TRUONG duoc phep phong dan; cac vu khi khac chi danh/xoay/quay phong thu.
- if(type!=="bow"&&type!=="staff")return;
- let cooldown=abilities[o.ability].cooldown*(type==="bow"?1.15:1.3);
+ if(type!=="bow"&&type!=="staff"&&type!=="sun")return;
+ let cooldown=abilities[o.ability].cooldown*(type==="bow"?1.15:type==="sun"?.95:1.3);
  if(o.weaponCooldown>0)return;
  o.weaponCooldown=cooldown;
  const dx=target.x-o.x,dy=target.y-o.y,d=Math.hypot(dx,dy)||1;
  projectiles.push({
   x:o.x+dx/d*(o.r+8),y:o.y+dy/d*(o.r+8),
-  vx:dx/d*(type==="bow"?7.5:5.2),
-  vy:dy/d*(type==="bow"?7.5:5.2),
-  r:5,life:2.1,owner:o,
-  type:type==="bow"?"arrow":"magic",
-  damage:Math.max(3,Math.round(s.weaponInfo.damage+abilities[o.ability].damage*.35)),color:s.weaponInfo.color
+  vx:dx/d*(type==="bow"?7.5:type==="sun"?9:5.2),
+  vy:dy/d*(type==="bow"?7.5:type==="sun"?9:5.2),
+  r:type==="sun"?7:5,life:2.1,owner:o,
+  type:type==="bow"?"arrow":type==="sun"?"sunbeam":"magic",
+  damage:Math.max(3,Math.round(s.damage+abilities[o.ability].damage*.25)),color:s.weaponInfo.color
  });
- addLog(o===player?"player":"enemy",s.name+" phóng "+(type==="bow"?"mũi tên":"đạn phép từ trượng")+"!");
+ addLog(o===player?"player":"enemy",s.name+" "+(type==="bow"?"bắn tên":type==="sun"?"phóng tia sáng":"phóng phép")+"!");
 }
 function shieldBlocks(target,attacker){
  if(target.skin!==25||target.shieldCooldown>0)return false;
@@ -419,13 +425,14 @@ function hitOrb(target,attacker,damage,type){
  target.hitCooldown=.34;target.flash=.22;
  const isPlayerTarget=target===player;
  const attackerAbility=abilities[attacker.ability];
+ damage=Math.max(1,Math.round(damage+attackerAbility.damage*.25));
  if(attacker.ability===11)damage=Math.round(damage*1.2);
  if(target.ability===9)damage=Math.max(1,Math.round(damage*.78));
  if(isPlayerTarget)playerHP=Math.max(0,playerHP-damage);
  else enemyHP=Math.max(0,enemyHP-damage);
  if(attacker.ability===0){
-  if(attacker===player)playerHP=Math.min(attackerAbility.maxHP,playerHP+damage*.25);
-  else enemyHP=Math.min(attackerAbility.maxHP,enemyHP+damage*.25);
+  if(attacker===player)playerHP=Math.min(skins[attacker.skin].maxHP,playerHP+damage*.25);
+  else enemyHP=Math.min(skins[attacker.skin].maxHP,enemyHP+damage*.25);
   addLog(attacker===player?"player":"enemy","♥ Hút máu hồi lại HP!");
  }
  burst(target.x,target.y,type==="sunbeam"?"#ffe57a":type==="arrow"?"#e9f2ff":"#ffffff",10);
@@ -453,11 +460,11 @@ function checkOrbitWeaponHits(){
   const type=skins[attacker.skin].weapon;
   if(["sun","bow","staff","shield"].includes(type))continue;
   const target=attacker===player?enemy:player;
-  const radius=attacker.r+24;
+  const radius=attacker.r+27;
   const wx=attacker.x+Math.cos(attacker.weaponAngle)*radius;
   const wy=attacker.y+Math.sin(attacker.weaponAngle)*radius;
   if(Math.hypot(wx-target.x,wy-target.y)<target.r+9){
-   hitOrb(target,attacker,Math.round(skins[attacker.skin].weaponInfo.damage+abilities[attacker.ability].damage*.35),"orbit");
+   hitOrb(target,attacker,Math.round(skins[attacker.skin].damage+skins[attacker.skin].weaponInfo.damage*.35),"orbit");
   }
  }
 }
